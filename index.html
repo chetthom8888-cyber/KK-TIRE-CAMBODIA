@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KK Tire Cambodia</title>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Html2Canvas សម្រាប់បង្កើតរូបភាពរបាយការណ៍ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e3d59;
+            --accent: #ff6e40;
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+        body {
+            font-family: 'Khmer OS Siemreap', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+        }
+        header {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .nav-btn {
+            background: none;
+            border: none;
+            font-family: 'Khmer OS Siemreap', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #666;
+        }
+        .nav-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .product-main-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        .sub-images {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            overflow-x: auto;
+        }
+        .sub-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .badge {
+            background: var(--accent);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 6px 0 12px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: 'Khmer OS Siemreap', sans-serif;
+        }
+        button.action-btn {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Khmer OS Siemreap', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        #reportCard {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px dashed var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>🇰🇭 KK Tire Cambodia</h2>
+        <p>ប្រព័ន្ធកាតាឡុក កុម្ម៉ង់ទំនិញ និងណាត់ជួបអតិថិជន</p>
+    </header>
+
+    <!-- មឺនុយរុករក -->
+    <div class="nav-tabs">
+        <button class="nav-btn active" onclick="switchTab('catalog')">កាតាឡុក</button>
+        <button class="nav-btn" onclick="switchTab('order')">កុម្ម៉ង់ទិញ</button>
+        <button class="nav-btn" onclick="switchTab('appointment')">ណាត់ជួប</button>
+        <button class="nav-btn" onclick="switchTab('report')">របាយការណ៍</button>
+    </div>
+
+    <!-- ១. ផ្ទាំងកាតាឡុក និង Promotion -->
+    <div id="catalog" class="tab-content active">
+        <div class="card" style="background: #fff3e0; border-left: 5px solid var(--accent);">
+            <h3>🔥 ព័ត៌មាន Promotion ប្រចាំខែ</h3>
+            <p>ទិញកង់ម៉ូតូគ្រប់ប្រភេទ អស់សរសៃរ បញ្ចុះតម្លៃ ១៥% ជូនភ្លាមៗ!</p>
+        </div>
+
+        <div class="card">
+            <h3>កង់ម៉ូតូធន់ស្វិតកម្រិតខ្ពស់ (Tubeless 80/90-14)</h3>
+            <img src="https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500" class="product-main-img" id="mainDisplayImg" alt="Main Product">
+            
+            <div class="sub-images">
+                <img src="https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500" class="sub-img" onclick="changeMainImage(this.src)">
+                <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500" class="sub-img" onclick="changeMainImage(this.src)">
+                <img src="https://images.unsplash.com/photo-1449426468159-d96dbf08f19f?w=500" class="sub-img" onclick="changeMainImage(this.src)">
+            </div>
+
+            <p style="margin-top: 10px;">តម្លៃធម្មតា: <del>៣៥ ដុល្លារ</del> | <span class="badge">តម្លៃលក់: ២៩.៩៩ ដុល្លារ</span></p>
+            <button class="action-btn" onclick="selectProduct('កង់ម៉ូតូ Tubeless 80/90-14', 29.99)">ជ្រើសរើសទំនិញនេះ</button>
+        </div>
+    </div>
+
+    <!-- ២. ផ្ទាំងកុម្ម៉ង់ទំនិញ -->
+    <div id="order" class="tab-content">
+        <div class="card">
+            <h3>🛒 បញ្ជាទិញទំនិញ</h3>
+            <label>ឈ្មោះអតិថិជន:</label>
+            <input type="text" id="custName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក">
+            
+            <label>លេខទូរសព្ទ:</label>
+            <input type="text" id="custPhone" placeholder="012 345 678">
+
+            <label>ទីតាំង Google Maps (Location):</label>
+            <input type="text" id="custLocation" placeholder="តំណរភ្ជាប់ Google Maps របស់អ្នក">
+            <button type="button" style="padding: 6px; background: var(--primary); color: white; border: none; border-radius: 4px; margin-bottom: 12px; cursor: pointer;" onclick="getLocation()">យករំលែកទីតាំងបច្ចុប្បន្ន</button>
+
+            <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 12px;">
+                ទំនិញបានជ្រើសរើស: <span id="selectedProductText" style="font-weight: bold; color: var(--primary);">មិនទាន់មាន</span>
+            </div>
+
+            <button class="action-btn" onclick="sendOrderToTelegram()">បញ្ជូនការបញ្ជាទិញចូល Telegram</button>
+        </div>
+    </div>
+
+    <!-- ៣. មុខងារណាត់ជួបអតិថិជន Target -->
+    <div id="appointment" class="tab-content">
+        <div class="card">
+            <h3>📅 កំណត់ការណាត់ជួបអតិថិជន</h3>
+            <label>ឈ្មោះអតិថិជន Target:</label>
+            <input type="text" id="apptName" placeholder="ឈ្មោះហាង ឬអតិថិជន">
+            
+            <label>កាលបរិច្ឆេទ និងម៉ោងណាត់:</label>
+            <input type="datetime-local" id="apptTime">
+
+            <label>គោលបំណង / កិច្ចពិភាក្សា:</label>
+            <textarea id="apptNote" placeholder="ឧ. យកគំរូកង់ម៉ូតូទៅបង្ហាញដល់ទីតាំងផ្ទាល់"></textarea>
+
+            <button class="action-btn" style="background: #d81b60;" onclick="sendAppointmentToTelegram()">ផ្ញើការណាត់ជួបចូល Telegram</button>
+        </div>
+    </div>
+
+    <!-- ៤. របាយការណ៍ និងចែករំលែករូបភាព -->
+    <div id="report" class="tab-content">
+        <div id="reportCard" class="card">
+            <h3 style="text-align: center; color: var(--primary);">📊 របាយការណ៍សង្ខេបប្រចាំថ្ងៃ</h3>
+            <p>កាលបរិច្ឆេទ: <span id="currentDate"></span></p>
+            <hr>
+            <p><strong>ការបញ្ជាទិញសរុប:</strong> ៥ នាក់</p>
+            <p><strong>ការណាត់ជួប Target:</strong> ២ ទីតាំង</p>
+            <p><strong>ចំណូលប៉ាន់ស្មាន:</strong> <span style="color: green; font-weight: bold;">១៤៩.៩៥ $</span></p>
+            <p style="text-align: center; font-size: 11px; color: #777; margin-top: 15px;">KK Tire Cambodia - Sales System</p>
+        </div>
+        <button class="action-btn" style="margin-top: 12px; background: #512da8;" onclick="downloadReportImage()">📥 ទាញយករូបភាពរបាយការណ៍</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        let chosenItem = "";
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+            if(tabId === 'report') {
+                document.getElementById('currentDate').innerText = new Date().toLocaleDateString('km-KH');
+            }
+        }
+
+        function changeMainImage(src) {
+            document.getElementById('mainDisplayImg').src = src;
+        }
+
+        function selectProduct(name, price) {
+            chosenItem = name + ' (' + price + ' $)';
+            document.getElementById('selectedProductText').innerText = chosenItem;
+            alert('បានជ្រើសរើស: ' + name);
+            switchTab('order');
+            document.querySelectorAll('.nav-btn')[1].classList.add('active');
+            document.querySelectorAll('.nav-btn')[0].classList.remove('active');
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    let lat = position.coords.latitude;
+                    let lon = position.coords.longitude;
+                    document.getElementById('custLocation').value = `https://maps.google.com/?q=${lat},${lon}`;
+                }, () => {
+                    alert('មិនអាចទាញយកទីតាំងបានទេ សូមបញ្ចូលដោយដៃ។');
+                });
+            } else {
+                alert('Browser មិនรองรับ Geolocation ទេ។');
+            }
+        }
+
+        function sendOrderToTelegram() {
+            let name = document.getElementById('custName').value;
+            let phone = document.getElementById('custPhone').value;
+            let loc = document.getElementById('custLocation').value;
+            if(!name || !phone) {
+                alert('សូមបំពេញឈ្មោះ និងលេខទូរសព្ទឱ្យបានគ្រប់គ្រាន់!');
+                return;
+            }
+            let msg = `🛒 [KK Tire] មានការបញ្ជាទិញថ្មី!\n- ឈ្មោះ: ${name}\n- លេខទូរសព្ទ: ${phone}\n- ទីតាំង: ${loc}\n- ទំនិញ: ${chosenItem || 'មិនបានជ្រើសរើសជាក់លាក់'}`;
+            tg.sendData(msg);
+            alert('ការបញ្ជាទិញត្រូវបានបញ្ជូនជោគជ័យ!');
+        }
+
+        function sendAppointmentToTelegram() {
+            let name = document.getElementById('apptName').value;
+            let time = document.getElementById('apptTime').value;
+            let note = document.getElementById('apptNote').value;
+            if(!name || !time) {
+                alert('សូមបំពេញឈ្មោះ និងម៉ោងណាត់ជួប!');
+                return;
+            }
+            let msg = `📅 [KK Tire] កំណត់ការណាត់ជួបថ្មី!\n- អតិថិជន: ${name}\n- ពេលវេន: ${time}\n- គោលបំណង: ${note}`;
+            tg.sendData(msg);
+            alert('ការណាត់ជួបត្រូវបានបញ្ជូនជោគជ័យ!');
+        }
+
+        function downloadReportImage() {
+            let element = document.getElementById('reportCard');
+            html2canvas(element).then(canvas => {
+                let link = document.createElement('a');
+                link.download = 'KK_Tire_Report.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                alert('ទាញយករូបភាពរបាយការណ៍បានสำเร็จ!');
+            });
+        }
+    </script>
+</body>
+</html>
