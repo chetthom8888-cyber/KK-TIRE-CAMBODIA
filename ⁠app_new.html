@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KK Tire Cambodia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Battambang', sans-serif; }
+        body { background-color: #f4f6f9; color: #333; padding: 15px; }
+        h2 { font-size: 18px; margin-bottom: 15px; color: #1b263b; text-align: center; }
+        .card { background: #fff; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .product-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .product-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; margin-right: 10px; }
+        .product-info { flex-grow: 1; font-size: 13px; }
+        .price-full { text-decoration: line-through; color: #888; font-size: 11px; }
+        .price-net { color: #d90429; font-weight: bold; font-size: 13px; }
+        .btn-order { background: #2a9d8f; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: 'Battambang', sans-serif; }
+    </style>
+</head>
+<body>
+
+    <h2>🛒 KK Tire Cambodia - ហាងទំនិញ</h2>
+
+    <div class="card">
+        <h3>📦 បញ្ជីផលិតផលទាំងអស់</h3>
+        <div id="customerProductList">
+            <!-- ទំនិញនឹងបង្ហាញទីនេះស្វ័យប្រវត្តិ -->
+        </div>
+    </div>
+
+    <script>
+        function loadCustomerProducts() {
+            let listDiv = document.getElementById("customerProductList");
+            let products = JSON.parse(localStorage.getItem("kk_products")) || [
+                {category: "moto-tire", name: "Tubeless 80/90-14", full: "២៥.០០ ដុល្លារ", net: "២១.០០ ដុល្លារ", image: ""}
+            ];
+
+            listDiv.innerHTML = "";
+            if (products.length === 0) {
+                listDiv.innerHTML = `<p style="font-size:13px; color:#888; text-align:center; padding:10px;">មិនទាន់មានទំនិញក្នុងស្តុកនៅឡើយទេ</p>`;
+                return;
+            }
+
+            products.forEach((p) => {
+                let imgTag = p.image ? `<img src="${p.image}">` : `<div style="width:50px;height:50px;background:#eee;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#888;margin-right:10px;">គ្មានរូប</div>`;
+                listDiv.innerHTML += `
+                    <div class="product-item">
+                        ${imgTag}
+                        <div class="product-info">
+                            <b>[${p.category}]</b> ${p.name}<br>
+                            <span class="price-full">តម្លៃពេញ: ${p.full}</span><br>
+                            <span class="price-net">តម្លៃនេត: ${p.net}</span>
+                        </div>
+                        <button class="btn-order" onclick="alert('បានជ្រើសរើសទំនិញ: ${p.name}')">កុម្ម៉ង់</button>
+                    </div>
+                `;
+            });
+        }
+
+        loadCustomerProducts();
+    </script>
+</body>
+</html>
