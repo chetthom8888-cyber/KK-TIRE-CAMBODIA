@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>គ្រប់គ្រងទំនិញ - KK Tire V5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Battambang', sans-serif; }
+        body { background-color: #f4f6f9; color: #333; padding: 15px; }
+        h2 { font-size: 18px; margin-bottom: 15px; color: #1b263b; text-align: center; }
+        .card { background: #fff; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: 'Battambang', sans-serif; }
+        textarea { resize: vertical; height: 60px; }
+        .file-upload { border: 2px dashed #3a86ff; border-radius: 6px; padding: 15px; text-align: center; color: #3a86ff; background: #f0f4ff; cursor: pointer; font-size: 12px; }
+        .btn-submit { background: #1d3557; color: #fff; border: none; width: 100%; padding: 12px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: 'Battambang', sans-serif; }
+        .product-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .product-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; margin-right: 10px; }
+        .product-info { flex-grow: 1; font-size: 12px; }
+        .badge { background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 10px; color: #495057; }
+        .price-net { color: #d90429; font-weight: bold; }
+        .btn-delete { background: #d90429; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: 'Battambang', sans-serif; }
+    </style>
+</head>
+<body>
+
+    <h2>⚙️ គ្រប់គ្រងទំនិញ (V5) - KK Tire</h2>
+
+    <!-- PIN Login Box -->
+    <div id="pinBox" class="card" style="text-align: center; padding: 30px;">
+        <h3>🔐 សូមបញ្ចូលលេខ PIN Admin</h3>
+        <input type="password" id="pinInput" placeholder="បញ្ចូលលេខ PIN (ឧ. 8888)" style="text-align: center; margin: 15px 0; font-size: 16px;">
+        <button class="btn-submit" onclick="checkPin()">ចូលកាន់ប្រព័ន្ធ</button>
+    </div>
+
+    <!-- Main Admin Panel -->
+    <div id="adminPanel" style="display: none;">
+        <div class="card">
+            <h3>➕ បន្ថែមទំនិញថ្មី</h3>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>ប្រភេទ ឬស្លាកទំនិញ (Category / Tag)</label>
+                <input type="text" id="productCategory" placeholder="ឧ. សំបកកង់ម៉ូតូ, អាគុយ, ម៉ាក IRC">
+            </div>
+            <div class="form-group">
+                <label>ឈ្មោះទំនិញ</label>
+                <input type="text" id="productName" placeholder="ឧ. Tubeless 80/90-14">
+            </div>
+            <div class="form-group">
+                <label>តម្លៃពេញ ($)</label>
+                <input type="text" id="productFullPrice" placeholder="ឧ. ២៥.០០$">
+            </div>
+            <div class="form-group">
+                <label>តម្លៃនេត ($)</label>
+                <input type="text" id="productNetPrice" placeholder="ឧ. ២១.០០$">
+            </div>
+            <div class="form-group">
+                <label>ការរៀបរាប់ពីទំនិញ (Description)</label>
+                <textarea id="productDesc" placeholder="សរសេររៀបរាប់ពីគុណភាព ទំហំ ឬការធានា..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>រូបភាពទំនិញ</label>
+                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                    + ចុចទីនេះเพื่อเลือกรูปភាពពី Gallery
+                </div>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="previewImage(event)">
+                <div id="imagePreviewContainer" style="margin-top: 10px; text-align: center;"></div>
+            </div>
+            <button class="btn-submit" onclick="addProduct()">💾 រក្សាទុក និងបញ្ចូលទំនិញ</button>
+        </div>
+
+        <div class="card">
+            <h3>📦 បញ្ជីទំនិញបច្ចុប្បន្ន</h3>
+            <div id="adminProductList"></div>
+        </div>
+    </div>
+
+    <script>
+        let base64Image = "";
+
+        function checkPin() {
+            let pin = document.getElementById("pinInput").value;
+            if (pin === "8888") {
+                document.getElementById("pinBox").style.display = "none";
+                document.getElementById("adminPanel").style.display = "block";
+                loadAdminProducts();
+            } else {
+                alert("លេខ PIN មិនត្រឹមត្រូវទេ!");
+            }
+        }
+
+        function previewImage(event) {
+            let file = event.target.files[0];
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    base64Image = e.target.result;
+                    document.getElementById("imagePreviewContainer").innerHTML = `
+                        <img src="${base64Image}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px;">
+                        <p style="font-size: 11px; color: #2a9d8f; margin-top: 5px;">បានជ្រើសរើសរូបភាពរួចរាល់</p>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function addProduct() {
+            let category = document.getElementById("productCategory").value || "ទំនិញทั่วไป";
+            let name = document.getElementById("productName").value;
+            let full = document.getElementById("productFullPrice").value;
+            let net = document.getElementById("productNetPrice").value;
+            let desc = document.getElementById("productDesc").value;
+
+            if (!name || !net) {
+                alert("សូមបំពេញឈ្មោះទំនិញ និងតម្លៃនេតយ៉ាងហោចណាស់!");
+                return;
+            }
+
+            let products = JSON.parse(localStorage.getItem("kk_products")) || [];
+            products.push({
+                category: category,
+                name: name,
+                full: full,
+                net: net,
+                desc: desc,
+                image: base64Image
+            });
+
+            localStorage.setItem("kk_products", JSON.stringify(products));
+            alert("បានបន្ថែមទំនិញជោគជ័យ!");
+            
+            // Clear form
+            document.getElementById("productCategory").value = "";
+            document.getElementById("productName").value = "";
+            document.getElementById("productFullPrice").value = "";
+            document.getElementById("productNetPrice").value = "";
+            document.getElementById("productDesc").value = "";
+            document.getElementById("imagePreviewContainer").innerHTML = "";
+            base64Image = "";
+
+            loadAdminProducts();
+        }
+
+        function loadAdminProducts() {
+            let listDiv = document.getElementById("adminProductList");
+            let products = JSON.parse(localStorage.getItem("kk_products")) || [];
+
+            listDiv.innerHTML = "";
+            if (products.length === 0) {
+                listDiv.innerHTML = `<p style="font-size:12px; color:#888; text-align:center; padding:10px;">មិនទាន់មានទំនិញទេ</p>`;
+                return;
+            }
+
+            products.forEach((p, index) => {
+                let imgTag = p.image ? `<img src="${p.image}">` : `<div style="width:50px;height:50px;background:#eee;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#888;margin-right:10px;">គ្មានរូប</div>`;
+                listDiv.innerHTML += `
+                    <div class="product-item">
+                        ${imgTag}
+                        <div class="product-info">
+                            <span class="badge">${p.category}</span><br>
+                            <b>${p.name}</b><br>
+                            <span style="color:#666; font-size:11px;">${p.desc || ''}</span><br>
+                            <span class="price-net">តម្លៃនេត: ${p.net}</span>
+                        </div>
+                        <button class="btn-delete" onclick="deleteProduct(${index})">លុប</button>
+                    </div>
+                `;
+            });
+        }
+
+        function deleteProduct(index) {
+            if (confirm("តើអ្នកពិតជាចង់លុបទំនិញនេះមែនទេ?")) {
+                let products = JSON.parse(localStorage.getItem("kk_products")) || [];
+                products.splice(index, 1);
+                localStorage.setItem("kk_products", JSON.stringify(products));
+                loadAdminProducts();
+            }
+        }
+    </script>
+</body>
+</html>
