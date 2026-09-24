@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ប្រព័ន្ធគ្រប់គ្រង Admin - KK Tire</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Siemreap', Arial, sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 16px;
+            color: #1e293b;
+        }
+        .login-box, .admin-panel {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .admin-panel { display: none; }
+        input, button, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: 'Siemreap', Arial, sans-serif;
+        }
+        button {
+            background-color: #1e3d59;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background-color: #152638; }
+        
+        /* រចនាប័ទ្មប៊ូតុងសញ្ញា + សម្រាប់បន្ថែមរូបភាព */
+        .image-upload-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            margin: 8px 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+        .image-upload-box:hover {
+            border-color: #1e3d59;
+            color: #1e3d59;
+        }
+
+        .product-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .delete-btn {
+            background-color: #dc2626;
+            width: auto;
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ផ្ទាំងផ្ទៀងផ្ទាត់ Password -->
+    <div id="loginBox" class="login-box">
+        <h2 style="color: #1e3d59; text-align: center;">🔐 ចូលកាន់ប្រព័ន្ធ Admin</h2>
+        <p style="text-align: center; font-size: 12px; color: #64748b;">សូមវាយបញ្ចូលលេខសម្ងាត់ដើម្បីបន្ត</p>
+        <input type="password" id="passcode" placeholder="វាយបញ្ចូលលេខសម្ងាត់ (8888)">
+        <button onclick="checkLogin()">ចូល (Login)</button>
+    </div>
+
+    <!-- ផ្ទាំងគ្រប់គ្រង Admin -->
+    <div id="adminPanel" class="admin-panel">
+        <h2 style="color: #1e3d59;">⚙️ គ្រប់គ្រងទំនិញ - KK Tire</h2>
+        
+        <div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+            <h3 style="font-size: 14px; margin-top: 0;">បន្ថែមទំនិញថ្មី</h3>
+            <input type="text" id="pTitle" placeholder="ឈ្មោះទំនិញ (ឧ. សំបកកង់ម៉ូតូ...)">
+            <input type="text" id="pRegPrice" placeholder="តម្លៃពេញ (ឧ. ៣៥.០០$)">
+            <input type="text" id="pNetPrice" placeholder="តម្លៃនេត (ឧ. ២៩.៩៩$)">
+            
+            <!-- ប្ដូរពី URL មកជាប៊ូតុងសញ្ញា (+) សម្រាប់ Upload រូបភាព -->
+            <label style="font-size: 12px; color: #64748b; font-weight: bold;">រូបភាពទំនិញ៖</label>
+            <div class="image-upload-box" onclick="document.getElementById('fileInput').click()">
+                <span style="font-size: 18px; font-weight: bold;">+</span> បន្ថែមរូបភាពទំនិញ
+            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="previewImage(event)">
+            <div id="fileName" style="font-size: 11px; color: #16a34a; margin-bottom: 8px;"></div>
+
+            <button onclick="addProduct()">➕ រក្សាទុក និងបញ្ចូលទំនិញ</button>
+        </div>
+
+        <h3>បញ្ជីទំនិញបច្ចុប្បន្ន</h3>
+        <div id="productList">
+            <div class="product-row">
+                <span>សំបកកង់ម៉ូតូ Tubeless 80/90-14 (២៩.៩៩$)</span>
+                <button class="delete-btn" onclick="alert('លុបជោគជ័យ')">លុប</button>
+            </div>
+            <div class="product-row">
+                <span>ច្រវាក់ឈុតម៉ូតូ WB Chain Kit (២១.៥០$)</span>
+                <button class="delete-btn" onclick="alert('លុបជោគជ័យ')">លុប</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function checkLogin() {
+            let pass = document.getElementById('passcode').value;
+            if (pass === '8888') {
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert('លេខសម្ងាត់មិនត្រឹមត្រូវទេ! (សូមប្រើលេខ 8888)');
+            }
+        }
+
+        function previewImage(event) {
+            let file = event.target.files[0];
+            if (file) {
+                document.getElementById('fileName').innerText = `បានជ្រើសរើសរូបភាព: ${file.name}`;
+            }
+        }
+
+        function addProduct() {
+            let title = document.getElementById('pTitle').value;
+            let net = document.getElementById('pNetPrice').value;
+            if(!title || !net) {
+                alert('សូមបំពេញឈ្មោះទំនិញ និងតម្លៃឱ្យបានគ្រប់គ្រាន់!');
+                return;
+            }
+            alert(`បានបន្ថែមទំនិញ "${title}" តម្លៃ ${net} ទៅក្នុងប្រព័ន្ធដោយជោគជ័យ!`);
+            document.getElementById('pTitle').value = '';
+            document.getElementById('pRegPrice').value = '';
+            document.getElementById('pNetPrice').value = '';
+            document.getElementById('fileName').innerText = '';
+            document.getElementById('fileInput').value = '';
+        }
+    </script>
+</body>
+</html>
