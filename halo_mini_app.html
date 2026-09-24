@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HALO - Motorcycle Parts & Accessories</title>
+    <style>
+        body {
+            font-family: 'Siemreap', Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        /* ផ្ទាំងអក្សររត់ Promotion */
+        .promo-banner {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 10px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .promo-track {
+            display: inline-block;
+            animation: scrollPromo 20s linear infinite;
+        }
+        @keyframes scrollPromo {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .container {
+            padding: 12px;
+        }
+        h2 {
+            font-size: 16px;
+            color: #1e293b;
+            margin-bottom: 10px;
+            border-left: 4px solid #2563eb;
+            padding-left: 8px;
+        }
+        /* បញ្ជីទំនិញបែប Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .product-card img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        .product-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 6px 0;
+            height: 32px;
+            overflow: hidden;
+        }
+        .product-price {
+            font-size: 12px;
+            color: #dc2626;
+            margin-bottom: 8px;
+        }
+        .buy-btn {
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            padding: 6px 0;
+            width: 100%;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ផ្ទាំង Promotion អក្សររត់ -->
+    <div class="promo-banner">
+        <div class="promo-track">
+            🔥 ទិញកង់ម៉ូតូគ្រប់ប្រភេទ អស់សរសៃរ បញ្ចុះតម្លៃ ១៥% ដུស្នាំៗ! | 🛢️ ប្រេងម៉ាស៊ីន និងគ្រឿងបន្លាស់ HALO មានការធានាគុណភាពខ្ពស់!
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- ទំនិញពេញនិយម -->
+        <h2>ទំនិញពេញនិយម</h2>
+        <div class="product-grid">
+            <div class="product-card">
+                <img src="tire1.jpg" alt="KK Tire">
+                <div class="product-title">កង់ម៉ូតូស៊កស៊ីតកពិភពខ្ពស់ (Tubeless 80/90-14)</div>
+                <div class="product-price">តម្លៃចាស់: ៣៥$ | <b style="color: #16a34a;">២៩.៩៩$</b></div>
+                <button class="buy-btn">ជ្រើសរើសទិញនេ្ទះ</button>
+            </div>
+            <!-- បន្ថែមទំនិញពេញនិយមផ្សេងៗទៀតនៅទីនេះ -->
+        </div>
+
+        <!-- ទំនិញថ្មីៗ -->
+        <h2>ទំនិញមកថ្មី</h2>
+        <div class="product-grid">
+            <div class="product-card">
+                <img src="spray1.jpg" alt="KK Spray">
+                <div class="product-title">ថ្នាំបាញ់ការពារច្រែះ KK Spray</div>
+                <div class="product-price"><b style="color: #16a34a;">៥.៥០$</b></div>
+                <button class="buy-btn">ជ្រើសរើសទិញនេ្ទះ</button>
+            </div>
+            <!-- បន្ថែមទំនិញថ្មីៗផ្សេងៗទៀតនៅទីនេះ -->
+        </div>
+    </div>
+
+</body>
+</html>
