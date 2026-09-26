@@ -1,0 +1,800 @@
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getDatabase, ref, set, push, remove, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwXn3viLY2dgPT74aygFI-MLK0YgbQ6Uo",
+            authDomain: "kk-tire-shop.firebaseapp.com",
+            projectId: "kk-tire-shop",
+            storageBucket: "kk-tire-shop.firebasestorage.app",
+            messagingSenderId: "436252946163",
+            appId: "1:436252946163:web:af3fc96c3ff88e478b5186",
+            measurementId: "G-TP2DFVJQZC"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let tg = window.Telegram.WebApp;
+        try { tg.expand(); } catch(e) {}
+
+        let currentProduct = null;
+        let currentQty = 1;
+        let tempCoverImg = "";
+        let tempGalleryImgs = [];
+        let tempSloganPng = "";
+        let tempPromoPng = "";
+        let currentCategory = 'all';
+
+        let globalProducts = JSON.parse(localStorage.getItem('kk_cached_products')) || [];
+        let globalPromos = JSON.parse(localStorage.getItem('kk_cached_promos')) || [];
+        let globalSlogans = JSON.parse(localStorage.getItem('kk_cached_slogans')) || [];
+        let globalSettings = JSON.parse(localStorage.getItem('kk_cached_settings')) || { storeName: "ហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire Cambodia" };
+
+        let defaultPromos = [
+            { text: "⚡ ⏩ ហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire Cambodia ➔ ➔ ទិញសំបកកង់ម៉ូតូគ្រប់ប្រភេទ បញ្ចុះតម្លៃ ១៥%! ✨ ➔ ➔ 📞 ទំនាក់ទំនងទិញឥឡូវនេះ! ⚡ ⏩", png: "" }
+        ];
+
+        let defaultSlogans = [
+            { text: "🇰🇭 កូនខ្មែរពហិការផលិតផលសៀមជានិច្ច ជួយគាំទ្រផលិតផលខ្មែរពិតៗ!", png: "" },
+            { text: "🛡️ គុណភាព សុវត្ថិភាព និងភាពស្មោះត្រង់ គឺជាអាទិភាពរបស់យើង!", png: "" }
+        ];
+
+        let defaultProducts = [
+            {
+                category: "tire_moto",
+                name: "សំបកកង់ម៉ូតូ KK 130/70-13 TL 8PR PCX",
+                full: "29$",
+                net: "27.76$",
+                desc: "សម្រាប់ម៉ូតូ PCX 021 គុណភាពខ្ពស់ធន់ល្អ",
+                coverImage: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400",
+                galleryImages: ["https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400"],
+                views: 0,
+                pinned: false,
+                createdAt: Date.now()
+            }
+        ];
+
+        // បង្ហាញទិន្នន័យដែលមានស្រាប់ភ្លាមៗ
+        if (globalProducts.length > 0) {
+            loadProducts('all', "");
+            renderPromosTicker();
+            renderSlogans();
+        } else {
+            globalProducts = defaultProducts;
+            loadProducts('all', "");
+        }
+
+        // 🟢 បង្ខំលុប Loading ចេញភ្លាមៗក្នុងពេល 0.5 វិនាទី ដើម្បីការពារការជាប់គាំង
+        setTimeout(() => {
+            let overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 200);
+            }
+        }, 500);
+
+        function compressImage(file, maxWidth = 600, quality = 0.7) {
+            return new Promise((resolve) => {
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    let img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function () {
+                        let canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        let ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function initApp() {
+            const statsRef = ref(db, 'kk_shop/stats/totalViews');
+            runTransaction(statsRef, (currentViews) => {
+                return (currentViews || 0) + 1;
+            });
+
+            onValue(ref(db, 'kk_shop/stats/totalViews'), (snapshot) => {
+                let val = snapshot.val();
+                if(val) document.getElementById('totalAppViews').innerText = val;
+            });
+
+            onValue(ref(db, 'kk_shop/settings'), (snapshot) => {
+                let data = snapshot.val();
+                if (data) {
+                    globalSettings = data;
+                    localStorage.setItem('kk_cached_settings', JSON.stringify(data));
+                    document.getElementById("storeTitleDisplay").innerText = data.storeName;
+                    document.getElementById("pageTitle").innerText = data.storeName;
+                }
+            });
+
+            onValue(ref(db, 'kk_shop/promos'), (snapshot) => {
+                let data = snapshot.val();
+                if (data) {
+                    globalPromos = Object.keys(data).map(key => {
+                        let item = data[key];
+                        if (typeof item === 'string') return { text: item, png: '', firebaseKey: key };
+                        return { text: item.text || '', png: item.png || '', firebaseKey: key };
+                    });
+                } else {
+                    globalPromos = defaultPromos.map(p => ({ ...p, firebaseKey: '' }));
+                }
+                localStorage.setItem('kk_cached_promos', JSON.stringify(globalPromos));
+                renderPromosTicker();
+                if(document.getElementById('adminModal').style.display === 'flex') loadAdminPromoList();
+            });
+
+            onValue(ref(db, 'kk_shop/slogans'), (snapshot) => {
+                let data = snapshot.val();
+                if (data) {
+                    globalSlogans = Object.keys(data).map(key => {
+                        let item = data[key];
+                        if (typeof item === 'string') return { text: item, png: '', firebaseKey: key };
+                        return { text: item.text || '', png: item.png || '', firebaseKey: key };
+                    });
+                } else {
+                    globalSlogans = defaultSlogans.map(s => ({ ...s, firebaseKey: '' }));
+                }
+                localStorage.setItem('kk_cached_slogans', JSON.stringify(globalSlogans));
+                renderSlogans();
+                if(document.getElementById('adminModal').style.display === 'flex') loadAdminSloganList();
+            });
+
+            onValue(ref(db, 'kk_shop/products'), (snapshot) => {
+                let data = snapshot.val();
+                if (data) {
+                    globalProducts = Object.keys(data).map(key => ({ ...data[key], firebaseKey: key }))
+                                       .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                    localStorage.setItem('kk_cached_products', JSON.stringify(globalProducts));
+                    loadProducts(currentCategory, document.getElementById("searchInput").value);
+                    if(document.getElementById('adminModal').style.display === 'flex') loadAdminList();
+                }
+            });
+        }
+
+        function renderPromosTicker() {
+            let textsOnly = globalPromos.map(p => {
+                let imgHtml = p.png ? `<img src="${p.png}" style="width:16px; height:16px; vertical-align:middle; margin-right:4px;">` : "";
+                return imgHtml + p.text;
+            });
+            document.getElementById("promoTextDisplay").innerHTML = textsOnly.join(" &nbsp;&nbsp;&nbsp;⚡⚡⚡&nbsp;&nbsp;&nbsp; ");
+        }
+
+        let currentSloganIndex = 0;
+        function renderSlogans() {
+            let container = document.getElementById('boycottBannerContainer');
+            if (!container || globalSlogans.length === 0) return;
+            
+            container.innerHTML = "";
+            globalSlogans.forEach((s, idx) => {
+                let div = document.createElement('div');
+                div.className = `slogan-slide ${idx === 0 ? 'active' : ''}`;
+                let imgHtml = s.png ? `<img src="${s.png}" style="width:16px; height:16px; vertical-align:middle; margin-right:4px;">` : "";
+                div.innerHTML = imgHtml + s.text;
+                container.appendChild(div);
+            });
+
+            if (globalSlogans.length > 1) {
+                if (window.sloganInterval) clearInterval(window.sloganInterval);
+                window.sloganInterval = setInterval(() => {
+                    let slides = container.querySelectorAll('.slogan-slide');
+                    if(slides.length === 0) return;
+                    slides[currentSloganIndex].classList.remove('active');
+                    currentSloganIndex = (currentSloganIndex + 1) % slides.length;
+                    slides[currentSloganIndex].classList.add('active');
+                }, 10000);
+            }
+        }
+
+        window.openGuideModal = function() { document.getElementById('guideModal').style.display = 'flex'; };
+        window.closeGuideModal = function() { document.getElementById('guideModal').style.display = 'none'; };
+
+        window.openAllPromosModal = function() {
+            let container = document.getElementById('clientPromoListContainer');
+            container.innerHTML = "";
+            globalPromos.forEach(p => {
+                let imgTag = p.png ? `<img src="${p.png}" style="width:30px; height:30px; object-fit:contain; margin-bottom:4px; display:block;">` : "";
+                container.innerHTML += `<div style="padding:8px; border-bottom:1px solid #e2e8f0; margin-bottom:4px;">${imgTag}<b>${p.text}</b></div>`;
+            });
+            document.getElementById('allPromosModal').style.display = 'flex';
+        };
+        window.closeAllPromosModal = function() { document.getElementById('allPromosModal').style.display = 'none'; };
+
+        window.openAllSlogansModal = function() {
+            let container = document.getElementById('clientSloganListContainer');
+            container.innerHTML = "";
+            globalSlogans.forEach(s => {
+                let imgTag = s.png ? `<img src="${s.png}" style="width:30px; height:30px; object-fit:contain; margin-bottom:4px; display:block;">` : "";
+                container.innerHTML += `<div style="padding:8px; border-bottom:1px solid #e2e8f0; margin-bottom:4px;">${imgTag}<b>${s.text}</b></div>`;
+            });
+            document.getElementById('allSlogansModal').style.display = 'flex';
+        };
+        window.closeAllSlogansModal = function() { document.getElementById('allSlogansModal').style.display = 'none'; };
+
+        function formatPrice(val) {
+            if (!val) return '';
+            val = val.trim();
+            if (!val.includes('$')) return val + '$';
+            return val;
+        }
+
+        function createProductCardHTML(p, index, isHorizontal = false) {
+            let priceFormatted = formatPrice(p.full);
+            let coverImg = p.coverImage || 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400';
+
+            let badgeHtml = "";
+            if (!p.isViewed) {
+                badgeHtml = `<div style="position: absolute; top: 3px; left: 3px; background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; padding: 2px 5px; font-size: 7.5px; font-weight: bold; border-radius: 3px; z-index:2; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">✨ ថ្មី</div>`;
+            } else if (!isHorizontal && currentCategory === "popular") {
+                badgeHtml = `<div style="position: absolute; top: 3px; left: 3px; background: #ff6e40; color: white; padding: 1px 3px; font-size: 7px; font-weight: bold; border-radius: 2px; z-index:2;">ល្បី #${index + 1}</div>`;
+            }
+
+            return `
+                <div class="product-card" onclick="handleProductClick('${p.firebaseKey}')">
+                    ${badgeHtml}
+                    <img src="${coverImg}" alt="${p.name}">
+                    <div>
+                        <div class="product-title">${p.name}</div>
+                        <div class="price-view-row">
+                            <span class="product-price">${priceFormatted || 'គ្មាន'}</span>
+                            <span class="product-views-text">👁️ ${p.views || 0}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadProducts(category, searchQuery = "") {
+            let grid = document.getElementById("productGrid");
+            let popularGrid = document.getElementById("popularHorizontalGrid");
+            let newGrid = document.getElementById("newHorizontalGrid");
+            
+            grid.innerHTML = "";
+            popularGrid.innerHTML = "";
+            newGrid.innerHTML = "";
+
+            let popularWrapper = document.getElementById("popularSectionWrapper");
+            let newWrapper = document.getElementById("newSectionWrapper");
+
+            if (category !== "all" || searchQuery.trim() !== "") {
+                popularWrapper.style.display = "none";
+                newWrapper.style.display = "none";
+            } else {
+                popularWrapper.style.display = "block";
+                newWrapper.style.display = "block";
+
+                let popularList = [...globalProducts].sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return (b.views || 0) - (a.views || 0);
+                }).slice(0, 8);
+
+                popularList.forEach((p, idx) => {
+                    popularGrid.innerHTML += createProductCardHTML(p, idx, true);
+                });
+
+                let newList = [...globalProducts].sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return (b.createdAt || 0) - (a.createdAt || 0);
+                }).slice(0, 8);
+
+                newList.forEach((p, idx) => {
+                    newGrid.innerHTML += createProductCardHTML(p, idx, true);
+                });
+            }
+
+            let filtered = [];
+            if (category === "all") {
+                filtered = [...globalProducts].sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return (b.createdAt || 0) - (a.createdAt || 0);
+                });
+            } else if (category === "popular") {
+                filtered = [...globalProducts].sort((a, b) => (b.views || 0) - (a.views || 0));
+            } else if (category === "new") {
+                filtered = globalProducts.filter(p => !p.isViewed).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            } else {
+                filtered = globalProducts.filter(p => p.category === category);
+            }
+
+            if (searchQuery.trim() !== "") {
+                let q = searchQuery.toLowerCase().trim();
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(q) || 
+                    (p.desc && p.desc.toLowerCase().includes(q))
+                );
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<p style="grid-column: span 4; text-align: center; color: #cbd5e1; font-size: 10px; padding: 20px;">រកមិនឃើញទំនិញទេ</p>`;
+                return;
+            }
+
+            filtered.forEach((p, index) => {
+                grid.innerHTML += createProductCardHTML(p, index, false);
+            });
+        }
+
+        window.handleProductClick = function(key) {
+            let p = globalProducts.find(item => item.firebaseKey === key);
+            if (!p) return;
+            if (p.firebaseKey) {
+                let newViews = (p.views || 0) + 1;
+                set(ref(db, `kk_shop/products/${p.firebaseKey}/views`), newViews);
+                if (!p.isViewed) {
+                    set(ref(db, `kk_shop/products/${p.firebaseKey}/isViewed`), true);
+                }
+            }
+            openDetail(p);
+        };
+
+        window.filterCategory = function(cat, el) {
+            currentCategory = cat;
+            document.getElementById("searchInput").value = "";
+            if (el) {
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                el.classList.add('active');
+            } else {
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            }
+            let titleText = cat === 'all' ? 'បញ្ជីគ្រឿងបន្លាស់ម៉ូតូទាំងអស់' : (cat === 'popular' ? '🔥 គ្រឿងបន្លាស់ពេញនិយម' : (cat === 'new' ? '✨ គ្រឿងបន្លាស់ថ្មីៗ' : `ប្រភេទ: ${el ? el.innerText : ''}`));
+            document.getElementById('sectionTitle').innerText = titleText;
+            loadProducts(cat);
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        };
+
+        window.searchProducts = function() {
+            let query = document.getElementById("searchInput").value;
+            document.getElementById('sectionTitle').innerText = query ? `លទ្ធផលស្វែងរក: "${query}"` : "បញ្ជីគ្រឿងបន្លាស់ម៉ូតូទាំងអស់";
+            loadProducts(currentCategory, query);
+        };
+
+        function openDetail(p) {
+            currentProduct = p;
+            currentQty = 1;
+            document.getElementById('modalTitle').innerText = p.name;
+            document.getElementById('modalReg').innerText = formatPrice(p.full) || 'គ្មាន';
+            document.getElementById('modalNet').innerText = formatPrice(p.net) || 'គ្មាន';
+            document.getElementById('modalDesc').innerText = p.desc || 'គ្មានការរៀបរាប់';
+            document.getElementById('orderQtyDisplay').innerText = currentQty;
+
+            let cover = p.coverImage || 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400';
+            let gallery = (p.galleryImages && p.galleryImages.length > 0) ? p.galleryImages : [cover];
+
+            document.getElementById('mainModalImg').src = cover;
+
+            let thumbContainer = document.getElementById('thumbnailContainer');
+            thumbContainer.innerHTML = '';
+            gallery.forEach((imgUrl, index) => {
+                let thumb = document.createElement('img');
+                thumb.src = imgUrl;
+                if(index === 0) thumb.classList.add('active-thumb');
+                thumb.onclick = () => {
+                    document.getElementById('mainModalImg').src = imgUrl;
+                    thumbContainer.querySelectorAll('img').forEach(t => t.classList.remove('active-thumb'));
+                    thumb.classList.add('active-thumb');
+                };
+                thumbContainer.appendChild(thumb);
+            });
+
+            updateModalOrderLink();
+            document.getElementById('productModal').style.display = 'flex';
+        }
+
+        window.closeDetail = function() { document.getElementById('productModal').style.display = 'none'; };
+
+        window.adjustQty = function(amount) {
+            currentQty += amount;
+            if (currentQty < 1) currentQty = 1;
+            document.getElementById('orderQtyDisplay').innerText = currentQty;
+            updateModalOrderLink();
+        };
+
+        function updateModalOrderLink() {
+            if(!currentProduct) return;
+            let priceFormatted = formatPrice(currentProduct.full);
+            let netFormatted = formatPrice(currentProduct.net);
+            
+            let orderMessage = `🛒 បញ្ជាទិញ:\n📦 ${currentProduct.name}\n💰 តម្លៃពេញ: ${priceFormatted} | តម្លៃនេត: ${netFormatted}\n🔢 ចំនួន: ${currentQty}`;
+            let telegramUrl = `https://t.me/SameanMom168?text=` + encodeURIComponent(orderMessage);
+            document.getElementById('modalOrderLink').href = telegramUrl;
+        }
+
+        window.openExchangeModal = function() { document.getElementById('exchangeModal').style.display = 'flex'; };
+        window.closeExchangeModal = function() { document.getElementById('exchangeModal').style.display = 'none'; };
+
+        window.openAiModal = function() { document.getElementById('aiModal').style.display = 'flex'; };
+        window.closeAiModal = function() { document.getElementById('aiModal').style.display = 'none'; };
+
+        window.openCalendarModal = function() { 
+            let d = new Date();
+            let days = ['អាទិត្យ', 'ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
+            let months = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+            let khmerNums = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+            let toKhmerNum = (num) => num.toString().split('').map(n => khmerNums[n] || n).join('');
+            
+            let solarStr = `ថ្ងៃ${days[d.getDay()]} ទី${toKhmerNum(d.getDate())} ខែ${months[d.getMonth()]} ឆ្នាំ${toKhmerNum(d.getFullYear())}`;
+            document.getElementById('khmerSolarDate').innerText = solarStr;
+            
+            let lunarStr = `ពុទ្ធសករាជ ២៥៧០, ថ្ងៃសុក្រ ទី១៤ កើត ខែភ្នាស្រ ឆ្នាំថោះ សប្តស័ក`;
+            let eventStr = `• ជាថ្ងៃធ្វើការធម្មតា (Weekday) សម្រាប់អាជីវកម្មហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire Cambodia。\n• រដូវកាលភ្លៀងធ្លាក់ សូមប្រុងប្រយ័ត្នពេលបើកបរ និងពិនិត្យសំបកកង់ម៉ូតូឱ្យបានហ្មត់ចត់។`;
+            
+            document.getElementById('khmerLunarDate').innerText = lunarStr;
+            document.getElementById('calendarEventDesc').innerText = eventStr;
+            
+            document.getElementById('calendarModal').style.display = 'flex'; 
+        };
+        window.closeCalendarModal = function() { document.getElementById('calendarModal').style.display = 'none'; };
+
+        window.sendAiQuery = function() {
+            let input = document.getElementById('aiQueryInput');
+            let chatBox = document.getElementById('aiChatBox');
+            let q = input.value.trim();
+            if(!q) return;
+
+            chatBox.innerHTML += `<div style="margin-bottom:4px; text-align:right;"><b>អ្នក:</b> ${q}</div>`;
+            input.value = "";
+
+            setTimeout(() => {
+                let reply = "យោងតាមទិន្នន័យហាង KK Tire និងចំណេះដឹងទូទៅ៖ ";
+                if(q.includes("សំបកកង់") || q.includes("តម្លៃ")) {
+                    reply += "ហាងយើងខ្ញុំមានលក់សំបកកង់ម៉ូតូគ្រប់ប្រភេទដូចជា ADV, PCX និងអាគុយគុណភាពខ្ពស់ ធានាជូនតម្លៃសមរម្យ!";
+                } else if(q.includes("ប្តូរប្រាក់") || q.includes("លុយ")) {
+                    reply += "អត្រាប្តូរប្រាក់ USD/KHR គឺប្រហែល 4,040 - 4,065 រៀល ផ្អែកលើធនាគារ ABA។";
+                } else {
+                    reply += `សម្រាប់សំណួរ "${q}" នេះ បងអាចទំនាក់ទំនងផ្ទាល់ជាមួយម្ចាស់ហាងតាម Telegram (@SameanMom168) ដើម្បីទទួលបានព័ត៌មានលម្អិតបន្ថែមបានបង!`;
+                }
+                chatBox.innerHTML += `<div style="margin-bottom:4px; color:#0284c7;"><b>AI:</b> ${reply}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 500);
+        };
+
+        window.openAdminLogin = function() {
+            let user = tg.initDataUnsafe && tg.initDataUnsafe.user;
+            let username = user ? user.username : "";
+
+            if (username === "SameanMom168" || !username) {
+                document.getElementById('adminModal').style.display = 'flex';
+                document.getElementById('editStoreName').value = globalSettings.storeName;
+                loadAdminPromoList();
+                loadAdminSloganList();
+                loadAdminList();
+            } else {
+                alert("⚠️ បដិសេធ! មានតែម្ចាស់ហាង (@SameanMom168) ប៉ុណ្ណោះដែលអាចចូលគ្រប់គ្រង Admin បាន!");
+            }
+        };
+
+        window.closeAdmin = function() { document.getElementById('adminModal').style.display = 'none'; };
+
+        window.saveStoreSettings = function() {
+            let newName = document.getElementById('editStoreName').value;
+            set(ref(db, 'kk_shop/settings/storeName'), newName).then(() => { alert("ជោគជ័យ!"); });
+        };
+
+        window.previewSloganPng = async function(event) {
+            let file = event.target.files[0];
+            if (file) {
+                tempSloganPng = await compressImage(file, 200, 0.8);
+                document.getElementById('sloganPngPreview').innerHTML = `<img src="${tempSloganPng}" style="width:30px; height:30px; object-fit:contain;">`;
+            }
+        };
+
+        window.saveSloganData = function() {
+            let editKey = document.getElementById('editSloganKey').value;
+            let text = document.getElementById('newSloganText').value.trim();
+            if(!text) { alert("សូមបំពេញប្រយោគ!"); return; }
+
+            let existing = editKey ? globalSlogans.find(s => s.firebaseKey === editKey) : null;
+            let finalPng = tempSloganPng || (existing ? existing.png : '');
+
+            let sloganObj = { text: text, png: finalPng };
+
+            if (editKey) {
+                set(ref(db, `kk_shop/slogans/${editKey}`), sloganObj).then(() => { alert("ជោគជ័យ!"); resetSloganForm(); });
+            } else {
+                set(push(ref(db, 'kk_shop/slogans')), sloganObj).then(() => { alert("ជោគជ័យ!"); resetSloganForm(); });
+            }
+        };
+
+        function loadAdminSloganList() {
+            let list = document.getElementById('adminSloganList');
+            list.innerHTML = "";
+            let top5 = globalSlogans.slice(0, 5);
+            top5.forEach((s) => {
+                let imgTag = s.png ? `<img src="${s.png}">` : "";
+                list.innerHTML += `
+                    <div class="promo-item-row">
+                        ${imgTag}
+                        <div style="flex-grow:1; overflow:hidden; text-overflow:ellipsis; margin-right:4px;">${s.text}</div>
+                        <button onclick="editSlogan('${s.firebaseKey}', '${s.text.replace(/'/g, "\\'")}')" style="background:#0284c7; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer; margin-right:2px;">កែ</button>
+                        <button onclick="deleteSlogan('${s.firebaseKey}')" style="background:red; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer;">លុប</button>
+                    </div>
+                `;
+            });
+        }
+
+        window.openAdminAllSlogans = function() {
+            let container = document.getElementById('adminFullSloganList');
+            container.innerHTML = "";
+            globalSlogans.forEach((s) => {
+                let imgTag = s.png ? `<img src="${s.png}" style="width:30px; height:30px; object-fit:contain; margin-right:4px;">` : "";
+                container.innerHTML += `
+                    <div class="promo-item-row">
+                        ${imgTag}
+                        <div style="flex-grow:1; overflow:hidden; text-overflow:ellipsis; margin-right:4px;">${s.text}</div>
+                        <button onclick="closeAdminAllSlogans(); editSlogan('${s.firebaseKey}', '${s.text.replace(/'/g, "\\'")}')" style="background:#0284c7; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer; margin-right:2px;">កែ</button>
+                        <button onclick="deleteSlogan('${s.firebaseKey}')" style="background:red; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer;">លុប</button>
+                    </div>
+                `;
+            });
+            document.getElementById('adminAllSlogansModal').style.display = 'flex';
+        };
+        window.closeAdminAllSlogans = function() { document.getElementById('adminAllSlogansModal').style.display = 'none'; };
+
+        window.editSlogan = function(key, text) {
+            let s = globalSlogans.find(item => item.firebaseKey === key);
+            document.getElementById('editSloganKey').value = key;
+            document.getElementById('newSloganText').value = text;
+            tempSloganPng = s ? s.png : '';
+            document.getElementById('sloganPngPreview').innerHTML = tempSloganPng ? `<img src="${tempSloganPng}" style="width:30px; height:30px; object-fit:contain;">` : '';
+            document.getElementById('sloganHeaderTitle').innerText = "✏️ កែប្រែប្រយោគ";
+            document.getElementById('saveSloganBtn').innerText = "កែប្រែប្រយោគ";
+            document.getElementById('cancelSloganEditBtn').style.display = "block";
+        };
+
+        window.resetSloganForm = function() {
+            document.getElementById('editSloganKey').value = "";
+            document.getElementById('newSloganText').value = "";
+            document.getElementById('sloganPngPreview').innerHTML = "";
+            tempSloganPng = "";
+            document.getElementById('sloganHeaderTitle').innerText = "🇰🇭 គ្រប់គ្រងប្រយោគប្តូរវេន (បង្ហាញ ៥ ដំបូង)";
+            document.getElementById('saveSloganBtn').innerText = "បន្ថែមប្រយោគ";
+            document.getElementById('cancelSloganEditBtn').style.display = "none";
+        };
+
+        window.deleteSlogan = function(key) {
+            if(confirm("តើចង់លុបប្រយោគនេះមែនទេ?")) remove(ref(db, `kk_shop/slogans/${key}`)).then(() => alert("ជោគជ័យ!"));
+        };
+
+        window.previewPromoPng = async function(event) {
+            let file = event.target.files[0];
+            if (file) {
+                tempPromoPng = await compressImage(file, 200, 0.8);
+                document.getElementById('promoPngPreview').innerHTML = `<img src="${tempPromoPng}" style="width:30px; height:30px; object-fit:contain;">`;
+            }
+        };
+
+        window.savePromoData = function() {
+            let editKey = document.getElementById('editPromoKey').value;
+            let text = document.getElementById('newPromoText').value.trim();
+            if(!text) { alert("សូមបំពេញអត្ថបទ!"); return; }
+
+            let existing = editKey ? globalPromos.find(p => p.firebaseKey === editKey) : null;
+            let finalPng = tempPromoPng || (existing ? existing.png : '');
+
+            let promoObj = { text: text, png: finalPng };
+
+            if (editKey) {
+                set(ref(db, `kk_shop/promos/${editKey}`), promoObj).then(() => { alert("ជោគជ័យ!"); resetPromoForm(); });
+            } else {
+                set(push(ref(db, 'kk_shop/promos')), promoObj).then(() => { alert("ជោគជ័យ!"); resetPromoForm(); });
+            }
+        };
+
+        function loadAdminPromoList() {
+            let list = document.getElementById('adminPromoList');
+            list.innerHTML = "";
+            let top5 = globalPromos.slice(0, 5);
+            top5.forEach((p) => {
+                let imgTag = p.png ? `<img src="${p.png}">` : "";
+                list.innerHTML += `
+                    <div class="promo-item-row">
+                        ${imgTag}
+                        <div style="flex-grow:1; overflow:hidden; text-overflow:ellipsis; margin-right:4px;">${p.text}</div>
+                        <button onclick="editPromo('${p.firebaseKey}', '${p.text.replace(/'/g, "\\'")}')" style="background:#0284c7; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer; margin-right:2px;">កែ</button>
+                        <button onclick="deletePromo('${p.firebaseKey}')" style="background:red; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer;">លុប</button>
+                    </div>
+                `;
+            });
+        }
+
+        window.openAdminAllPromos = function() {
+            let container = document.getElementById('adminFullPromoList');
+            container.innerHTML = "";
+            globalPromos.forEach((p) => {
+                let imgTag = p.png ? `<img src="${p.png}" style="width:30px; height:30px; object-fit:contain; margin-right:4px;">` : "";
+                container.innerHTML += `
+                    <div class="promo-item-row">
+                        ${imgTag}
+                        <div style="flex-grow:1; overflow:hidden; text-overflow:ellipsis; margin-right:4px;">${p.text}</div>
+                        <button onclick="closeAdminAllPromos(); editPromo('${p.firebaseKey}', '${p.text.replace(/'/g, "\\'")}')" style="background:#0284c7; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer; margin-right:2px;">កែ</button>
+                        <button onclick="deletePromo('${p.firebaseKey}')" style="background:red; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer;">លុប</button>
+                    </div>
+                `;
+            });
+            document.getElementById('adminAllPromosModal').style.display = 'flex';
+        };
+        window.closeAdminAllPromos = function() { document.getElementById('adminAllPromosModal').style.display = 'none'; };
+
+        window.editPromo = function(key, text) {
+            let p = globalPromos.find(item => item.firebaseKey === key);
+            document.getElementById('editPromoKey').value = key;
+            document.getElementById('newPromoText').value = text;
+            tempPromoPng = p ? p.png : '';
+            document.getElementById('promoPngPreview').innerHTML = tempPromoPng ? `<img src="${tempPromoPng}" style="width:30px; height:30px; object-fit:contain;">` : '';
+            document.getElementById('promoHeaderTitle').innerText = "✏️ កែប្រែប្រូម៉ូសិន";
+            document.getElementById('savePromoBtn').innerText = "កែប្រែ";
+            document.getElementById('cancelPromoEditBtn').style.display = "block";
+        };
+
+        window.resetPromoForm = function() {
+            document.getElementById('editPromoKey').value = "";
+            document.getElementById('newPromoText').value = "";
+            document.getElementById('promoPngPreview').innerHTML = "";
+            tempPromoPng = "";
+            document.getElementById('promoHeaderTitle').innerText = "🔥 គ្រប់គ្រងប្រូម៉ូសិន (បង្ហាញ ៥ ដំបូង)";
+            document.getElementById('savePromoBtn').innerText = "បន្ថែម";
+            document.getElementById('cancelPromoEditBtn').style.display = "none";
+        };
+
+        window.deletePromo = function(key) {
+            if(confirm("តើចង់លុបមែនទេ?")) remove(ref(db, `kk_shop/promos/${key}`)).then(() => alert("ជោគជ័យ!"));
+        };
+
+        window.previewCover = async function(event) {
+            let file = event.target.files[0];
+            if (file) {
+                tempCoverImg = await compressImage(file, 500, 0.7);
+                document.getElementById('coverPreview').innerHTML = `<img src="${tempCoverImg}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;">`;
+            }
+        };
+
+        window.previewGallery = async function(event) {
+            let files = event.target.files;
+            tempGalleryImgs = [];
+            let container = document.getElementById('galleryPreview');
+            container.innerHTML = "";
+            for (let i = 0; i < files.length; i++) {
+                let compressed = await compressImage(files[i], 600, 0.7);
+                tempGalleryImgs.push(compressed);
+                container.innerHTML += `<img src="${compressed}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">`;
+            }
+        };
+
+        window.saveProductData = function() {
+            let editKey = document.getElementById('editIndex').value;
+            let cat = document.getElementById('newCat').value;
+            let name = document.getElementById('newName').value;
+            let full = document.getElementById('newFull').value;
+            let net = document.getElementById('newNet').value;
+            let desc = document.getElementById('newDesc').value;
+
+            if(!name || !full) { alert("សូមបំពេញឈ្មោះ និងតម្លៃពេញ!"); return; }
+
+            let existingProd = editKey ? globalProducts.find(p => p.firebaseKey === editKey) : null;
+            let finalCover = tempCoverImg || (existingProd ? existingProd.coverImage : 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400');
+            let finalGallery = (tempGalleryImgs.length > 0) ? tempGalleryImgs : (existingProd ? existingProd.galleryImages : [finalCover]);
+
+            let productData = {
+                category: cat, name: name, full: full, net: net, desc: desc,
+                coverImage: finalCover, galleryImages: finalGallery,
+                views: existingProd ? (existingProd.views || 0) : 0,
+                isViewed: existingProd ? (existingProd.isViewed || false) : false,
+                pinned: existingProd ? (existingProd.pinned || false) : false,
+                createdAt: existingProd ? existingProd.createdAt : Date.now()
+            };
+
+            if (editKey) {
+                set(ref(db, `kk_shop/products/${editKey}`), productData).then(() => { 
+                    alert("ជោគជ័យ!"); 
+                    resetProductForm(); 
+                });
+            } else {
+                set(push(ref(db, 'kk_shop/products')), productData).then(() => { 
+                    alert("ជោគជ័យ!"); 
+                    resetProductForm(); 
+                });
+            }
+        };
+
+        window.editProd = function(key) {
+            let p = globalProducts.find(item => item.firebaseKey === key);
+            if(!p) return;
+            document.getElementById('editIndex').value = p.firebaseKey;
+            document.getElementById('newCat').value = p.category;
+            document.getElementById('newName').value = p.name;
+            document.getElementById('newFull').value = p.full;
+            document.getElementById('newNet').value = p.net || '';
+            document.getElementById('newDesc').value = p.desc || '';
+            
+            tempCoverImg = p.coverImage || '';
+            document.getElementById('coverPreview').innerHTML = tempCoverImg ? `<img src="${tempCoverImg}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;">` : '';
+
+            tempGalleryImgs = p.galleryImages || [];
+            let galleryContainer = document.getElementById('galleryPreview');
+            galleryContainer.innerHTML = "";
+            tempGalleryImgs.forEach(img => {
+                galleryContainer.innerHTML += `<img src="${img}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">`;
+            });
+            
+            document.getElementById('formHeaderTitle').innerText = "✏️ កែប្រែទំនិញ";
+            document.getElementById('saveProductBtn').innerText = "កែប្រែ";
+            document.getElementById('cancelEditBtn').style.display = "block";
+            document.getElementById('formHeaderTitle').scrollIntoView({behavior: 'smooth'});
+        };
+
+        window.resetProductForm = function() {
+            document.getElementById('editIndex').value = "";
+            document.getElementById('newName').value = "";
+            document.getElementById('newFull').value = "";
+            document.getElementById('newNet').value = "";
+            document.getElementById('newDesc').value = "";
+            document.getElementById('coverPreview').innerHTML = "";
+            document.getElementById('galleryPreview').innerHTML = "";
+            tempCoverImg = ""; tempGalleryImgs = [];
+            document.getElementById('formHeaderTitle').innerText = "➕ បន្ថែមទំនិញថ្មី";
+            document.getElementById('saveProductBtn').innerText = "រក្សាទុក";
+            document.getElementById('cancelEditBtn').style.display = "none";
+        };
+
+        function loadAdminList() {
+            let list = document.getElementById('adminProductList');
+            list.innerHTML = "";
+            let top5 = globalProducts.slice(0, 5);
+            top5.forEach((p) => {
+                let priceFormatted = formatPrice(p.full);
+                let firstImg = p.coverImage || 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400';
+                list.innerHTML += `
+                    <div class="product-item-row">
+                        <img src="${firstImg}">
+                        <div style="flex-grow:1; margin-left:4px;">
+                            <b>${p.name}</b><br><span style="color:red;">${priceFormatted}</span> (មើល: ${p.views || 0})
+                        </div>
+                        <button onclick="editProd('${p.firebaseKey}')" style="background:#0284c7; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer; margin-right:2px;">កែ</button>
+                        <button onclick="deleteProd('${p.firebaseKey}')" style="background:red; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer;">លុប</button>
+                    </div>
+                `;
+            });
+        }
+
+        window.openAdminAllProducts = function() {
+            let container = document.getElementById('adminFullProductList');
+            container.innerHTML = "";
+            globalProducts.forEach((p) => {
+                let priceFormatted = formatPrice(p.full);
+                let firstImg = p.coverImage || 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400';
+                container.innerHTML += `
+                    <div class="product-item-row">
+                        <img src="${firstImg}">
+                        <div style="flex-grow:1; margin-left:4px;">
+                            <b>${p.name}</b><br><span style="color:red;">${priceFormatted}</span> (មើល: ${p.views || 0})
+                        </div>
+                        <button onclick="closeAdminAllProducts(); editProd('${p.firebaseKey}')" style="background:#0284c7; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer; margin-right:2px;">កែ</button>
+                        <button onclick="deleteProd('${p.firebaseKey}')" style="background:red; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer;">លុប</button>
+                    </div>
+                `;
+            });
+            document.getElementById('adminAllProductsModal').style.display = 'flex';
+        };
+        window.closeAdminAllProducts = function() { document.getElementById('adminAllProductsModal').style.display = 'none'; };
+
+        window.deleteProd = function(key) {
+            if(confirm("តើចង់លុបមែនទេ?")) remove(ref(db, `kk_shop/products/${key}`)).then(() => alert("ជោគជ័យ!"));
+        };
+
+        initApp();
+    </script>
