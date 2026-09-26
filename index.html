@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">ហាងគ្រឿងបន្លាស់ម៉ូតូ - KK Tire Cambodia</title>
+    
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Google Fonts Khmer -->
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Bayon&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #1e3d59;
+            --accent: #ff6e40;
+            --bg: #475569;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --red: #dc2626;
+            --green: #16a34a;
+        }
+
+        body {
+            font-family: 'Battambang', Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0 0 105px 0;
+            color: #f8fafc;
+        }
+
+        @keyframes rgbNeonFast {
+            0% { border-color: #ff0000; box-shadow: 0 0 8px #ff0000, inset 0 0 8px #ff0000; }
+            33% { border-color: #00ff00; box-shadow: 0 0 8px #00ff00, inset 0 0 8px #00ff00; }
+            66% { border-color: #00ffff; box-shadow: 0 0 8px #00ffff, inset 0 0 8px #00ffff; }
+            100% { border-color: #ff0000; box-shadow: 0 0 8px #ff0000, inset 0 0 8px #ff0000; }
+        }
+
+        .sticky-header-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 99;
+            background-color: var(--primary);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .promo-banner {
+            background-color: var(--primary);
+            color: #ffffff;
+            padding: 5px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 11px;
+            font-weight: 700;
+            animation: rgbNeonFast 1.2s infinite linear;
+            border-bottom: 2px solid #ff0000;
+            cursor: pointer;
+        }
+        .promo-track {
+            display: inline-block;
+            animation: scrollPromo 12s linear infinite;
+        }
+        @keyframes scrollPromo {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .store-header {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 12px;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .admin-trigger-btn {
+            position: absolute; right: 10px; top: 10px;
+            background: rgba(255, 255, 255, 0.2); color: white;
+            border: 1px solid #cbd5e1; padding: 3px 6px; border-radius: 4px; font-size: 10px; cursor: pointer;
+        }
+
+        .guide-trigger-btn {
+            position: absolute; right: 75px; top: 10px;
+            background: rgba(14, 165, 233, 0.3); color: white;
+            border: 1px solid #38bdf8; padding: 3px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; font-family: 'Bayon', sans-serif;
+        }
+
+        .store-title { font-size: 15px; font-weight: bold; margin: 0 0 2px 0; font-family: 'Bayon', sans-serif; color: #f8fafc; }
+        .store-welcome { font-size: 9.5px; color: #94a3b8; margin: 0; }
+        .app-stats-bar { background: #020617; color: #38bdf8; font-size: 9px; padding: 3px 10px; text-align: center; font-weight: bold; border-bottom: 1px solid #334155; }
+
+        .search-container { background: #334155; padding: 5px 10px; border-bottom: 1px solid #1e293b; }
+        .search-input {
+            width: 100%; padding: 5px 10px 5px 28px; border: 1px solid #64748b; border-radius: 15px;
+            font-size: 11px; box-sizing: border-box; outline: none; background: #1e293b; color: white;
+        }
+        .search-box { position: relative; width: 100%; }
+        .search-icon { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; color: #94a3b8; }
+
+        .menu-container {
+            display: flex; overflow-x: auto; background: #1e293b; padding: 6px; gap: 6px;
+            border-bottom: 2px solid #0f172a; white-space: nowrap; scrollbar-width: none;
+        }
+        .menu-container::-webkit-scrollbar { display: none; }
+        .menu-item {
+            padding: 4px 10px; background: #334155; color: #e2e8f0; border-radius: 15px;
+            font-size: 10px; cursor: pointer; border: 1px solid #475569;
+        }
+        .menu-item.active { background: var(--accent); color: #ffffff; border-color: var(--accent); font-weight: bold; }
+
+        .container { padding: 8px; max-width: 600px; margin: 0 auto; }
+        h2 {
+            font-size: 13px; color: #ffffff; margin: 6px 0 8px 0; border-left: 3px solid var(--accent);
+            padding-left: 6px; font-family: 'Bayon', sans-serif;
+        }
+
+        .horizontal-grid { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 4px; scrollbar-width: thin; }
+        .horizontal-grid .product-card { min-width: 105px; max-width: 105px; flex-shrink: 0; }
+
+        .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        @media(min-width: 480px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
+
+        .product-card {
+            background: var(--card-bg); border-radius: 6px; padding: 5px; box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; border: 1px solid #e2e8f0; position: relative; color: var(--text-dark);
+        }
+        .product-card img { width: 100%; height: 75px; object-fit: cover; border-radius: 4px; background-color: #e2e8f0; }
+        .product-title {
+            font-size: 9px; font-weight: 700; margin: 3px 0; color: var(--text-dark); height: 24px;
+            line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        }
+        .price-view-row { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+        .product-price { font-size: 10px; color: var(--red); font-weight: bold; }
+        .product-views-text { font-size: 7px; color: #64748b; }
+
+        .buy-btn {
+            background-color: var(--green); color: white; border: none; padding: 5px 0; width: 100%;
+            border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; font-family: 'Bayon', sans-serif; text-align: center; text-decoration: none; display: block;
+        }
+
+        .bottom-floating-wrapper { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 998; box-shadow: 0 -4px 15px rgba(0,0,0,0.2); }
+        .boycott-banner {
+            background: radial-gradient(circle, #dc2626 0%, #7f1d1d 100%); color: #ffffff; font-size: 10.5px;
+            font-weight: bold; padding: 5px 10px; text-align: center; border-top: 2px solid #f87171; height: 20px; overflow: hidden; position: relative; cursor: pointer;
+        }
+        .slogan-slide { position: absolute; width: 100%; left: 0; text-align: center; opacity: 0; transition: opacity 0.4s ease; }
+        .slogan-slide.active { opacity: 1; }
+
+        .bottom-floating-bar { background: #ffffff; display: flex; justify-content: space-between; padding: 6px 4px; gap: 4px; }
+        .float-nav-btn {
+            flex: 1; background: var(--primary); color: white; border: none; padding: 7px 2px;
+            border-radius: 5px; font-size: 9.5px; font-weight: bold; font-family: 'Bayon', sans-serif; cursor: pointer; text-align: center;
+        }
+        .float-nav-btn.ai-btn { background: linear-gradient(135deg, #0284c7, #2563eb); }
+        .float-nav-btn.cal-btn { background: linear-gradient(135deg, #d97706, #f59e0b); }
+
+        .modal, .admin-modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center; padding: 8px; box-sizing: border-box;
+        }
+        .modal-content, .admin-content {
+            background: #fff; color: var(--text-dark); padding: 12px; border-radius: 10px; max-width: 400px; width: 100%; position: relative; max-height: 85vh; overflow-y: auto;
+        }
+        
+        .main-img-box { width: 100%; height: 150px; object-fit: cover; border-radius: 6px; margin-bottom: 5px; background: #e2e8f0; }
+        .thumbnail-container { display: flex; gap: 4px; justify-content: center; margin-bottom: 6px; flex-wrap: wrap; }
+        .thumbnail-container img { width: 35px; height: 35px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 2px solid #cbd5e1; }
+        .thumbnail-container img.active-thumb { border-color: var(--accent); }
+
+        .qty-box { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+        .qty-btn { background: #e2e8f0; border: none; width: 28px; height: 28px; font-size: 15px; font-weight: bold; border-radius: 5px; cursor: pointer; color: var(--primary); }
+        .qty-display { font-size: 13px; font-weight: bold; min-width: 20px; text-align: center; color: var(--text-dark); }
+
+        .form-group { margin-bottom: 5px; text-align: left; }
+        label { display: block; font-size: 8.5px; font-weight: bold; margin-bottom: 2px; color: #475569; }
+        
+        input, select, textarea { 
+            width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; 
+            font-size: 10.5px; box-sizing: border-box; background-color: #f8fafc; color: #0f172a; font-family: 'Battambang', sans-serif;
+        }
+        textarea { height: 40px; }
+
+        .file-upload { border: 2px dashed #3a86ff; border-radius: 4px; padding: 5px; text-align: center; color: #3a86ff; background: #f0f4ff; cursor: pointer; font-size: 8.5px; }
+        .product-item-row, .promo-item-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #e2e8f0; font-size: 8.5px; color: var(--text-dark); }
+        .product-item-row img, .promo-item-row img { width: 28px; height: 28px; object-fit: cover; border-radius: 3px; margin-right: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="app-stats-bar">
+        <span>👁️ ចំនួនអ្នកចូលមើលហាងសរុប: <b id="totalAppViews">0</b> ដង</span>
+    </div>
+
+    <div class="sticky-header-wrapper">
+        <div class="promo-banner" onclick="openAllPromosModal()">
+            <div class="promo-track" id="promoTextDisplay">
+                ⚡ ⏩ ហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire Cambodia ➔ ➔ ទិញសំបកកង់ម៉ូតូគ្រប់ប្រភេទ បញ្ចុះតម្លៃ ១៥%! ⚡ ⏩
+            </div>
+        </div>
+
+        <div class="menu-container">
+            <div class="menu-item active" onclick="filterCategory('all', this)">ទាំងអស់</div>
+            <div class="menu-item" onclick="filterCategory('tire_moto', this)">🛞 សំបកម៉ូតូ</div>
+            <div class="menu-item" onclick="filterCategory('tire_bicycle', this)">🚲 សំបកកង់ធាក់</div>
+            <div class="menu-item" onclick="filterCategory('tube_moto', this)">⭕ ពោះវៀនម៉ូតូ</div>
+            <div class="menu-item" onclick="filterCategory('tube_bicycle', this)">⭕ ពោះវៀនកង់ធាក់</div>
+            <div class="menu-item" onclick="filterCategory('battery', this)">🔋 អាគុយម៉ូតូ</div>
+            <div class="menu-item" onclick="filterCategory('chain', this)">⛓️ ច្រវាក់ឈុត</div>
+            <div class="menu-item" onclick="filterCategory('pad', this)">🛑 ប៉ាដាង</div>
+            <div class="menu-item" onclick="filterCategory('brake_shoe', this)">🛑 ស្បែកហ្វ្រាំង</div>
+            <div class="menu-item" onclick="filterCategory('bottle', this)">🍼 ដបប្រេង</div>
+            <div class="menu-item" onclick="filterCategory('bushing', this)">⚙️ ប៊ូសស៊ី</div>
+            <div class="menu-item" onclick="filterCategory('extra', this)">🛠️ បន្ថែម</div>
+        </div>
+    </div>
+
+    <div class="store-header">
+        <button class="guide-trigger-btn" onclick="openGuideModal()">📖 របៀបទិញ</button>
+        <button class="admin-trigger-btn" onclick="openAdminLogin()">⚙️ អដមីន</button>
+        <h1 class="store-title" id="storeTitleDisplay">ហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire Cambodia</h1>
+        <p class="store-welcome">ពិនិត្យទំនិញគ្រឿងបន្លាស់ និងសំបកកង់ម៉ូតូគ្រប់ប្រភេទ ព្រមទាំងធ្វើការបញ្ជាទិញផ្ទាល់។</p>
+    </div>
+
+    <div class="search-container">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="ស្វែងរកគ្រឿងបន្លាស់ម៉ូតូ..." oninput="searchProducts()">
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="horizontal-scroll-section" id="popularSectionWrapper">
+            <h2>🔥 គ្រឿងបន្លាស់ពេញនិយម</h2>
+            <div class="horizontal-grid" id="popularHorizontalGrid"></div>
+        </div>
+
+        <div class="horizontal-scroll-section" id="newSectionWrapper">
+            <h2>✨ គ្រឿងបន្លាស់ថ្មីៗ</h2>
+            <div class="horizontal-grid" id="newHorizontalGrid"></div>
+        </div>
+
+        <h2 id="sectionTitle">បញ្ជីគ្រឿងបន្លាស់ម៉ូតូទាំងអស់</h2>
+        <div class="product-grid" id="productGrid"></div>
+    </div>
+
+    <div class="bottom-floating-wrapper">
+        <div class="boycott-banner" id="boycottBannerContainer" onclick="openAllSlogansModal()"></div>
+        <div class="bottom-floating-bar">
+            <button class="float-nav-btn" onclick="openExchangeModal()">💱 អត្រាប្តូរប្រាក់</button>
+            <button class="float-nav-btn cal-btn" onclick="openCalendarModal()">📅 ប្រតិទិនខ្មែរ</button>
+            <button class="float-nav-btn ai-btn" onclick="openAiModal()">🤖 ជំនួយការ AI</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="guideModal" class="modal">
+        <div class="modal-content" style="text-align: left;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <h3 style="font-size:13px; color:#1e3d59; font-family:'Bayon',sans-serif; margin:0;">📖 មគ្គុទ្ទេសក៍៖ របៀបបញ្ជាទិញទំនិញ</h3>
+                <button onclick="closeGuideModal()" style="background:none; border:none; font-size:13px; cursor:pointer;">✕</button>
+            </div>
+            <div style="font-size: 9.5px; line-height: 1.5; color: #334155;">
+                <div style="background: #f1f5f9; padding: 6px; border-radius: 5px; margin-bottom: 5px;"><b>ជំហានទី ១៖</b> ចុចលើរូបភាព ឬកាតទំនិញណាមួយដែលបងពេញចិត្ត។</div>
+                <div style="background: #f1f5f9; padding: 6px; border-radius: 5px; margin-bottom: 5px;"><b>ជំហានទី ២៖</b> ចុចប៊ូតុង (+) ឬ (-) ដើម្បីកើនឬបន្ថយចំនួនតាមតម្រូវការ។</div>
+                <div style="background: #f1f5f9; padding: 6px; border-radius: 5px; margin-bottom: 5px;"><b>ជំហានទី ៣៖</b> ចុចប៊ូតុង <b>"🛒 បញ្ជាក់ការបញ្ជាទិញតាម Telegram"</b> ដើម្បីផ្ញើព័ត៌មានទៅកាន់អ្នកលក់ផ្ទាល់!</div>
+            </div>
+            <button onclick="closeGuideModal()" class="buy-btn" style="background:#0284c7; margin-top:8px; padding:5px;">យល់ព្រម / បិទ</button>
+        </div>
+    </div>
+
+    <div id="allPromosModal" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <h3 style="font-size:12px; color:#1e3d59; font-family:'Bayon',sans-serif; margin:0;">🔥 ប្រូម៉ូសិន និងការបញ្ចុះតម្លៃ</h3>
+                <button onclick="closeAllPromosModal()" style="background:none; border:none; font-size:12px; cursor:pointer;">✕</button>
+            </div>
+            <div id="clientPromoListContainer" style="max-height: 220px; overflow-y: auto; font-size: 9.5px;"></div>
+            <button onclick="closeAllPromosModal()" class="buy-btn" style="background:#64748b; margin-top:8px; padding:5px;">បិទ</button>
+        </div>
+    </div>
+
+    <div id="allSlogansModal" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <h3 style="font-size:12px; color:#1e3d59; font-family:'Bayon',sans-serif; margin:0;">🛡️ សេចក្តីប្រកាស និងប្រយោគហាង</h3>
+                <button onclick="closeAllSlogansModal()" style="background:none; border:none; font-size:12px; cursor:pointer;">✕</button>
+            </div>
+            <div id="clientSloganListContainer" style="max-height: 220px; overflow-y: auto; font-size: 9.5px;"></div>
+            <button onclick="closeAllSlogansModal()" class="buy-btn" style="background:#64748b; margin-top:8px; padding:5px;">បិទ</button>
+        </div>
+    </div>
+
+    <div id="calendarModal" class="modal">
+        <div class="modal-content" style="text-align: left;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <h3 style="font-size:13px; color:#d97706; font-family:'Bayon',sans-serif; margin:0;">📅 ប្រតិទិនខ្មែរ និងព្រឹត្តិការណ៍</h3>
+                <button onclick="closeCalendarModal()" style="background:none; border:none; font-size:13px; cursor:pointer;">✕</button>
+            </div>
+            <div style="background:#fffbeb; border:1px solid #fde68a; padding:10px; border-radius:6px; margin-bottom:6px; text-align:center;">
+                <div id="khmerSolarDate" style="color:#b45309; font-size:12px; font-weight:bold;"></div>
+                <div id="khmerLunarDate" style="color:#1e3d59; font-size:11px; margin-top:3px; font-weight:bold;"></div>
+            </div>
+            <button onclick="closeCalendarModal()" class="buy-btn" style="background:#64748b; margin-top:8px; padding:5px;">បិទ</button>
+        </div>
+    </div>
+
+    <div id="exchangeModal" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <h3 style="font-size:12px; color:#1e3d59; font-family:'Bayon',sans-serif; margin:0;">💱 អត្រាប្តូរប្រាក់ (ABA Bank)</h3>
+                <button onclick="closeExchangeModal()" style="background:none; border:none; font-size:12px; cursor:pointer;">✕</button>
+            </div>
+            <table style="width:100%; font-size:9.5px; border-collapse:collapse; color:#1e293b;">
+                <thead>
+                    <tr style="background:#f1f5f9; text-align:left;">
+                        <th style="padding:4px; border:1px solid #cbd5e1;">រូបិយប័ណ្ណ</th>
+                        <th style="padding:4px; border:1px solid #cbd5e1;">ទិញចូល (Buy)</th>
+                        <th style="padding:4px; border:1px solid #cbd5e1;">លក់ចេញ (Sell)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="padding:4px; border:1px solid #cbd5e1;">🇺🇸 USD / KHR</td><td style="padding:4px; border:1px solid #cbd5e1;">4,040.00</td><td style="padding:4px; border:1px solid #cbd5e1; color:red; font-weight:bold;">4,065.00</td></tr>
+                    <tr><td style="padding:4px; border:1px solid #cbd5e1;">🇹🇭 THB / KHR</td><td style="padding:4px; border:1px solid #cbd5e1;">118.83</td><td style="padding:4px; border:1px solid #cbd5e1; color:red; font-weight:bold;">123.93</td></tr>
+                </tbody>
+            </table>
+            <button onclick="closeExchangeModal()" class="buy-btn" style="background:#0284c7; margin-top:8px; padding:5px;">បិទ</button>
+        </div>
+    </div>
+
+    <div id="aiModal" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <h3 style="font-size:12px; color:#1e3d59; font-family:'Bayon',sans-serif; margin:0;">🤖 ជំនួយការ AI ឆ្លាតវៃ</h3>
+                <button onclick="closeAiModal()" style="background:none; border:none; font-size:12px; cursor:pointer;">✕</button>
+            </div>
+            <div id="aiChatBox" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:5px; height:110px; overflow-y:auto; padding:5px; font-size:9px; margin-bottom:5px; color:#1e293b;">
+                <div style="color:#0284c7;"><b>AI:</b> សួស្តី! តើខ្ញុំអាចជួយអ្វីបងបានដែរឬទេ?</div>
+            </div>
+            <div style="display:flex; gap:4px;">
+                <input type="text" id="aiQueryInput" placeholder="សួរសំណួរទីนี่..." style="flex-grow:1; font-size:9.5px; padding:4px;">
+                <button onclick="sendAiQuery()" style="background:var(--primary); color:white; border:none; padding:4px 8px; border-radius:4px; font-size:9.5px; cursor:pointer;">សួរ</button>
+            </div>
+            <button onclick="closeAiModal()" class="buy-btn" style="background:#64748b; margin-top:6px; padding:4px;">បិទ</button>
+        </div>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content text-center">
+            <button class="buy-btn" style="background:#64748b; margin-bottom: 6px; padding: 4px;" onclick="closeDetail()">✕ បិទ</button>
+            <img id="mainModalImg" class="main-img-box" src="" alt="Product">
+            <div id="thumbnailContainer" class="thumbnail-container"></div>
+            <h3 id="modalTitle" style="font-size: 12px; margin: 2px 0; font-family: 'Bayon', sans-serif;"></h3>
+            <p id="modalDesc" style="font-size: 9.5px; color: #64748b; margin-bottom: 4px;"></p>
+            
+            <div style="font-size: 9.5px; margin-bottom: 5px;">
+                តម្លៃពេញ: <span id="modalReg" style="color: #475569; font-weight: bold; margin-right: 6px;"></span>
+                តម្លៃនេត: <span id="modalNet" style="color: var(--red); font-weight: bold;"></span>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 5px;">
+                <label>ចំនួន</label>
+                <div class="qty-box">
+                    <button class="qty-btn" onclick="adjustQty(-1)">-</button>
+                    <span id="orderQtyDisplay" class="qty-display">1</span>
+                    <button class="qty-btn" onclick="adjustQty(1)">+</button>
+                </div>
+            </div>
+
+            <a id="modalOrderLink" href="#" target="_blank" class="buy-btn" style="padding: 6px;">🛒 បញ្ជាក់ការបញ្ជាទិញតាម Telegram</a>
+        </div>
+    </div>
+
+    <div id="adminModal" class="admin-modal">
+        <div class="admin-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <h3 style="font-size:12px; color:#1e3d59; font-family:'Bayon',sans-serif;" id="adminPanelTitle">⚙️ ប្រព័ន្ធគ្រប់គ្រងហាង (Admin)</h3>
+                <button onclick="closeAdmin()" style="background:none; border:none; font-size:12px; cursor:pointer;">✕</button>
+            </div>
+
+            <div id="adminDashboard">
+                <div style="background:#f1f5f9; padding:5px; border-radius:4px; margin-bottom:5px;">
+                    <h4 style="font-size:10px; margin-bottom:2px; font-family:'Bayon',sans-serif;">🛠️ កែប្រែឈ្មោះហាង</h4>
+                    <div class="form-group"><input type="text" id="editStoreName"></div>
+                    <button class="buy-btn" style="background:#0284c7; padding: 3px;" onclick="saveStoreSettings()">រក្សាទុក</button>
+                </div>
+
+                <div style="background:#f1f5f9; padding:5px; border-radius:4px; margin-bottom:5px;" id="adminProductFormSection">
+                    <h4 id="formHeaderTitle" style="font-size:10px; margin-bottom:2px; font-family:'Bayon',sans-serif;">➕ បន្ថែមទំនិញថ្មី</h4>
+                    <input type="hidden" id="editIndex" value="">
+                    <div class="form-group">
+                        <select id="newCat" onchange="loadAdminList()">
+                            <option value="tire_moto">សំបកកង់ម៉ូតូ</option>
+                            <option value="tire_bicycle">សំបកកង់កង់ធាក់</option>
+                            <option value="tube_moto">ពោះវៀនម៉ូតូ</option>
+                            <option value="tube_bicycle">ពោះវៀនកង់ធាក់</option>
+                            <option value="battery">អាគុយម៉ូតូ</option>
+                            <option value="chain">ច្រវាក់ឈុត</option>
+                            <option value="pad">ប៉ាដាង</option>
+                            <option value="brake_shoe">ស្បែកហ្វ្រាំង</option>
+                            <option value="bottle">ដបប្រេង</option>
+                            <option value="bushing">ប៊ូសស៊ីម៉ូតូ</option>
+                            <option value="extra">ផលិតផលបន្ថែម</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><input type="text" id="newName" placeholder="ឈ្មោះទំនិញ"></div>
+                    <div class="form-group"><input type="text" id="newFull" placeholder="តម្លៃពេញ ($)"></div>
+                    <div class="form-group"><input type="text" id="newNet" placeholder="តម្លៃនេត ($)"></div>
+                    <div class="form-group"><textarea id="newDesc" placeholder="ការរៀបរាប់"></textarea></div>
+                    
+                    <div class="form-group">
+                        <div class="file-upload" onclick="document.getElementById('coverFile').click()">+ រូបភាពគោល</div>
+                        <input type="file" id="coverFile" accept="image/*" style="display:none" onchange="previewCover(event)">
+                        <div id="coverPreview" style="text-align:center; margin-top:2px;"></div>
+                    </div>
+
+                    <button class="buy-btn" id="saveProductBtn" style="background:#16a34a; padding: 4px;" onclick="saveProductData()">រក្សាទុក</button>
+                    <button class="buy-btn" id="cancelEditBtn" style="background:#64748b; margin-top:2px; display:none; padding: 4px;" onclick="resetProductForm()">បោះបង់</button>
+                </div>
+
+                <div>
+                    <h4 style="font-size:10px; margin-bottom:2px; font-family:'Bayon',sans-serif;">📦 បញ្ជីទំនិញតាមប្រភេទ (ងាយស្រួលកែប្រែ)</h4>
+                    <div id="adminProductList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK & App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getDatabase, ref, set, push, remove, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwXn3viLY2dgPT74aygFI-MLK0YgbQ6Uo",
+            authDomain: "kk-tire-shop.firebaseapp.com",
+            projectId: "kk-tire-shop",
+            storageBucket: "kk-tire-shop.firebasestorage.app",
+            messagingSenderId: "436252946163",
+            appId: "1:436252946163:web:af3fc96c3ff88e478b5186",
+            measurementId: "G-TP2DFVJQZC"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let tg = window.Telegram.WebApp;
+        try { tg.expand(); } catch(e) {}
+
+        let currentProduct = null;
+        let currentQty = 1;
+        let tempCoverImg = "";
+        let currentCategory = 'all';
+
+        let globalProducts = [];
+        let globalPromos = [{ text: "⚡ ⏩ ហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire Cambodia ➔ ទិញសំបកកង់ម៉ូតូគ្រប់ប្រភេទ បញ្ចុះតម្លៃ ១៥%! ⚡ ⏩", png: "" }];
+        let globalSlogans = [{ text: "🇰🇭 ជួយគាំទ្រផលិតផលខ្មែរពិតៗ!", png: "" }];
+        let globalSettings = { storeName: "ហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire Cambodia" };
+
+        try {
+            globalProducts = JSON.parse(localStorage.getItem('kk_cached_products')) || [];
+            let cachedPromos = JSON.parse(localStorage.getItem('kk_cached_promos'));
+            if(cachedPromos) globalPromos = cachedPromos;
+            let cachedSlogans = JSON.parse(localStorage.getItem('kk_cached_slogans'));
+            if(cachedSlogans) globalSlogans = cachedSlogans;
+        } catch(e) {}
+
+        if (globalProducts.length === 0) {
+            globalProducts = [{
+                category: "tire_moto",
+                name: "សំបកកង់ម៉ូតូ KK 130/70-13 TL PCX",
+                full: "29$", net: "27.76$", desc: "សម្រាប់ម៉ូតូ PCX គុណភាពខ្ពស់",
+                coverImage: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400",
+                views: 0, createdAt: Date.now()
+            }];
+        }
+
+        // Render Immediately (Instant Open without waiting)
+        loadProducts('all', "");
+        renderPromosTicker();
+        renderSlogans();
+
+        function compressImage(file, maxWidth = 500, quality = 0.6) {
+            return new Promise((resolve) => {
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    let img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function () {
+                        let canvas = document.createElement('canvas');
+                        let width = img.width, height = img.height;
+                        if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+                        canvas.width = width; canvas.height = height;
+                        let ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Background Database Sync (Non-blocking)
+        setTimeout(() => {
+            try {
+                onValue(ref(db, 'kk_shop/stats/totalViews'), (snapshot) => {
+                    if(snapshot.val()) document.getElementById('totalAppViews').innerText = snapshot.val();
+                });
+                onValue(ref(db, 'kk_shop/settings'), (snapshot) => {
+                    if (snapshot.val()) {
+                        globalSettings = snapshot.val();
+                        document.getElementById("storeTitleDisplay").innerText = globalSettings.storeName;
+                        document.getElementById("pageTitle").innerText = globalSettings.storeName;
+                    }
+                });
+                onValue(ref(db, 'kk_shop/products'), (snapshot) => {
+                    let data = snapshot.val();
+                    if (data) {
+                        globalProducts = Object.keys(data).map(key => ({ ...data[key], firebaseKey: key }))
+                                            .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                        localStorage.setItem('kk_cached_products', JSON.stringify(globalProducts));
+                        loadProducts(currentCategory, document.getElementById("searchInput").value);
+                        if(document.getElementById('adminModal').style.display === 'flex') loadAdminList();
+                    }
+                });
+            } catch(e) {}
+        }, 50);
+
+        function renderPromosTicker() {
+            let textsOnly = globalPromos.map(p => p.text);
+            document.getElementById("promoTextDisplay").innerHTML = textsOnly.join(" &nbsp;&nbsp;&nbsp;⚡⚡⚡&nbsp;&nbsp;&nbsp; ");
+        }
+
+        let currentSloganIndex = 0;
+        function renderSlogans() {
+            let container = document.getElementById('boycottBannerContainer');
+            if (!container || globalSlogans.length === 0) return;
+            container.innerHTML = "";
+            globalSlogans.forEach((s, idx) => {
+                let div = document.createElement('div');
+                div.className = `slogan-slide ${idx === 0 ? 'active' : ''}`;
+                div.innerText = s.text;
+                container.appendChild(div);
+            });
+            if (globalSlogans.length > 1) {
+                if (window.sloganInterval) clearInterval(window.sloganInterval);
+                window.sloganInterval = setInterval(() => {
+                    let slides = container.querySelectorAll('.slogan-slide');
+                    if(slides.length === 0) return;
+                    slides[currentSloganIndex].classList.remove('active');
+                    currentSloganIndex = (currentSloganIndex + 1) % slides.length;
+                    slides[currentSloganIndex].classList.add('active');
+                }, 6000);
+            }
+        }
+
+        function formatPrice(val) {
+            if (!val) return '';
+            val = val.trim();
+            return val.includes('$') ? val : val + '$';
+        }
+
+        function createProductCardHTML(p) {
+            return `
+                <div class="product-card" onclick="handleProductClick('${p.firebaseKey || ''}')">
+                    <img src="${p.coverImage || 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400'}" alt="${p.name}">
+                    <div>
+                        <div class="product-title">${p.name}</div>
+                        <div class="price-view-row">
+                            <span class="product-price">${formatPrice(p.full) || 'គ្មាន'}</span>
+                            <span class="product-views-text">👁️ ${p.views || 0}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadProducts(category, searchQuery = "") {
+            let grid = document.getElementById("productGrid");
+            let popularGrid = document.getElementById("popularHorizontalGrid");
+            let newGrid = document.getElementById("newHorizontalGrid");
+            if(!grid) return;
+            
+            grid.innerHTML = ""; popularGrid.innerHTML = ""; newGrid.innerHTML = "";
+            let popWrap = document.getElementById("popularSectionWrapper");
+            let newWrap = document.getElementById("newSectionWrapper");
+
+            if (category !== "all" || searchQuery.trim() !== "") {
+                popWrap.style.display = "none"; newWrap.style.display = "none";
+            } else {
+                popWrap.style.display = "block"; newWrap.style.display = "block";
+                [...globalProducts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 6).forEach(p => { popularGrid.innerHTML += createProductCardHTML(p); });
+                [...globalProducts].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 6).forEach(p => { newGrid.innerHTML += createProductCardHTML(p); });
+            }
+
+            let filtered = category === "all" ? globalProducts : globalProducts.filter(p => p.category === category);
+            if (searchQuery.trim() !== "") {
+                let q = searchQuery.toLowerCase().trim();
+                filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<p style="grid-column: span 4; text-align: center; color: #cbd5e1; font-size: 10px; padding: 15px;">រកមិនឃើញទំនិញទេ</p>`;
+                return;
+            }
+            filtered.forEach(p => { grid.innerHTML += createProductCardHTML(p); });
+        }
+
+        window.handleProductClick = function(key) {
+            let p = globalProducts.find(item => item.firebaseKey === key) || globalProducts[0];
+            if (!p) return;
+            currentProduct = p; currentQty = 1;
+            document.getElementById('modalTitle').innerText = p.name;
+            document.getElementById('modalReg').innerText = formatPrice(p.full) || 'គ្មាន';
+            document.getElementById('modalNet').innerText = formatPrice(p.net) || 'គ្មាន';
+            document.getElementById('modalDesc').innerText = p.desc || 'គ្មានការរៀបរាប់';
+            document.getElementById('orderQtyDisplay').innerText = currentQty;
+            document.getElementById('mainModalImg').src = p.coverImage || '';
+            document.getElementById('thumbnailContainer').innerHTML = '';
+            updateModalOrderLink();
+            document.getElementById('productModal').style.display = 'flex';
+        };
+
+        window.closeDetail = function() { document.getElementById('productModal').style.display = 'none'; };
+        window.adjustQty = function(amt) {
+            currentQty = Math.max(1, currentQty + amt);
+            document.getElementById('orderQtyDisplay').innerText = currentQty;
+            updateModalOrderLink();
+        };
+
+        function updateModalOrderLink() {
+            if(!currentProduct) return;
+            let msg = `🛒 បញ្ជាទិញ:\n📦 ${currentProduct.name}\n💰 តម្លៃ: ${formatPrice(currentProduct.full)}\n🔢 ចំនួន: ${currentQty}`;
+            document.getElementById('modalOrderLink').href = `https://t.me/SameanMom168?text=` + encodeURIComponent(msg);
+        }
+
+        window.filterCategory = function(cat, el) {
+            currentCategory = cat;
+            document.getElementById("searchInput").value = "";
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            if(el) el.classList.add('active');
+            document.getElementById('sectionTitle').innerText = cat === 'all' ? 'បញ្ជីគ្រឿងបន្លាស់ម៉ូតូទាំងអស់' : `ប្រភេទ: ${el.innerText}`;
+            loadProducts(cat);
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        };
+
+        window.searchProducts = function() {
+            let q = document.getElementById("searchInput").value;
+            loadProducts(currentCategory, q);
+        };
+
+        window.openAdminLogin = function() {
+            document.getElementById('adminModal').style.display = 'flex';
+            document.getElementById('editStoreName').value = globalSettings.storeName;
+            loadAdminList();
+        };
+        window.closeAdmin = function() { document.getElementById('adminModal').style.display = 'none'; };
+
+        window.saveStoreSettings = function() {
+            set(ref(db, 'kk_shop/settings/storeName'), document.getElementById('editStoreName').value).then(() => alert("ជោគជ័យ!"));
+        };
+
+        window.previewCover = async function(event) {
+            let file = event.target.files[0];
+            if (file) {
+                tempCoverImg = await compressImage(file, 400, 0.6);
+                document.getElementById('coverPreview').innerHTML = `<img src="${tempCoverImg}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">`;
+            }
+        };
+
+        window.saveProductData = function() {
+            let editKey = document.getElementById('editIndex').value;
+            let cat = document.getElementById('newCat').value;
+            let name = document.getElementById('newName').value;
+            let full = document.getElementById('newFull').value;
+            let net = document.getElementById('newNet').value;
+            let desc = document.getElementById('newDesc').value;
+
+            if(!name || !full) { alert("សូមបំពេញឈ្មោះ និងតម្លៃពេញ!"); return; }
+
+            let existing = editKey ? globalProducts.find(p => p.firebaseKey === editKey) : null;
+            let productData = {
+                category: cat, name: name, full: full, net: net, desc: desc,
+                coverImage: tempCoverImg || (existing ? existing.coverImage : ''),
+                views: existing ? (existing.views || 0) : 0,
+                createdAt: existing ? existing.createdAt : Date.now()
+            };
+
+            if (editKey) {
+                set(ref(db, `kk_shop/products/${editKey}`), productData);
+            } else {
+                let newRef = push(ref(db, 'kk_shop/products'));
+                productData.firebaseKey = newRef.key;
+                set(newRef, productData);
+            }
+
+            resetProductForm();
+            alert("រក្សាទុករួចរាល់!");
+            document.getElementById('adminProductFormSection').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        function loadAdminList() {
+            let list = document.getElementById('adminProductList');
+            if(!list) return;
+            list.innerHTML = "";
+            let selectedCat = document.getElementById('newCat').value;
+            let filtered = globalProducts.filter(p => p.category === selectedCat);
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<p style="font-size:8.5px; color:#64748b; text-align:center; padding:4px;">គ្មានទំនិញក្នុងប្រភេទនេះទេ</p>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                list.innerHTML += `
+                    <div class="product-item-row">
+                        <img src="${p.coverImage || 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400'}">
+                        <div style="flex-grow:1; margin-left:4px;">
+                            <b>${p.name}</b><br><span style="color:red;">${formatPrice(p.full)}</span>
+                        </div>
+                        <button onclick="editProd('${p.firebaseKey || ''}')" style="background:#0284c7; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer; margin-right:2px;">កែ</button>
+                        <button onclick="deleteProd('${p.firebaseKey || ''}')" style="background:red; color:white; border:none; padding:2px 4px; border-radius:3px; cursor:pointer;">លុប</button>
+                    </div>
+                `;
+            });
+        }
+
+        window.editProd = function(key) {
+            let p = globalProducts.find(item => item.firebaseKey === key);
+            if(!p) return;
+            document.getElementById('editIndex').value = p.firebaseKey;
+            document.getElementById('newCat').value = p.category;
+            document.getElementById('newName').value = p.name;
+            document.getElementById('newFull').value = p.full;
+            document.getElementById('newNet').value = p.net || '';
+            document.getElementById('newDesc').value = p.desc || '';
+            tempCoverImg = p.coverImage || '';
+            document.getElementById('coverPreview').innerHTML = tempCoverImg ? `<img src="${tempCoverImg}" style="width:35px; height:35px; object-fit:cover;">` : '';
+            document.getElementById('formHeaderTitle').innerText = "✏️ កែប្រែទំនិញ";
+            document.getElementById('saveProductBtn').innerText = "កែប្រែ";
+            document.getElementById('cancelEditBtn').style.display = "block";
+            document.getElementById('formHeaderTitle').scrollIntoView({behavior: 'smooth'});
+        };
+
+        window.resetProductForm = function() {
+            document.getElementById('editIndex').value = "";
+            document.getElementById('newName').value = "";
+            document.getElementById('newFull').value = "";
+            document.getElementById('newNet').value = "";
+            document.getElementById('newDesc').value = "";
+            document.getElementById('coverPreview').innerHTML = "";
+            tempCoverImg = "";
+            document.getElementById('formHeaderTitle').innerText = "➕ បន្ថែមទំនិញថ្មី";
+            document.getElementById('saveProductBtn').innerText = "រក្សាទុក";
+            document.getElementById('cancelEditBtn').style.display = "none";
+            loadAdminList();
+        };
+
+        window.deleteProd = function(key) {
+            if(key && confirm("តើចង់លុបមែនទេ?")) remove(ref(db, `kk_shop/products/${key}`));
+        };
+
+        // Utility Modal Functions
+        window.openGuideModal = () => document.getElementById('guideModal').style.display = 'flex';
+        window.closeGuideModal = () => document.getElementById('guideModal').style.display = 'none';
+        window.openAllPromosModal = () => document.getElementById('allPromosModal').style.display = 'flex';
+        window.closeAllPromosModal = () => document.getElementById('allPromosModal').style.display = 'none';
+        window.openAllSlogansModal = () => document.getElementById('allSlogansModal').style.display = 'flex';
+        window.closeAllSlogansModal = () => document.getElementById('allSlogansModal').style.display = 'none';
+        window.openExchangeModal = () => document.getElementById('exchangeModal').style.display = 'flex';
+        window.closeExchangeModal = () => document.getElementById('exchangeModal').style.display = 'none';
+        window.openAiModal = () => document.getElementById('aiModal').style.display = 'flex';
+        window.closeAiModal = () => document.getElementById('aiModal').style.display = 'none';
+        window.openCalendarModal = () => {
+            let d = new Date();
+            document.getElementById('khmerSolarDate').innerText = `ថ្ងៃទី ${d.getDate()} ខែ ${d.getMonth()+1} ឆ្នាំ ${d.getFullYear()}`;
+            document.getElementById('khmerLunarDate').innerText = `ពុទ្ធសករាជ ២៥៧០`;
+            document.getElementById('calendarModal').style.display = 'flex';
+        };
+        window.closeCalendarModal = () => document.getElementById('calendarModal').style.display = 'none';
+        window.sendAiQuery = () => {
+            let box = document.getElementById('aiChatBox');
+            box.innerHTML += `<div style="text-align:right;"><b>អ្នក:</b> ${document.getElementById('aiQueryInput').value}</div>`;
+            setTimeout(() => { box.innerHTML += `<div style="color:#0284c7;"><b>AI:</b> ហាងយើងខ្ញុំមានលក់គ្រឿងបន្លាស់ម៉ូតូគ្រប់ប្រភេទ!</div>`; }, 200);
+        };
+    </script>
+</body>
+</html>
