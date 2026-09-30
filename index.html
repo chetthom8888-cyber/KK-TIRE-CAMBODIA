@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title id="pageTitle">ហាងគ្រឿងបន្លាស់ម៉ូតូ - KK Tire Cambodia</title>
+    <style>
+        :root { --primary: #1e3d59; --accent: #ff6e40; --bg: #334155; --card-bg: #ffffff; --text: #0f172a; --red: #dc2626; --green: #16a34a; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding-bottom: 70px; color: #f8fafc; }
+        
+        .header-bar { background: var(--primary); padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
+        .store-title { font-size: 14px; font-weight: bold; color: #38bdf8; margin: 0; }
+        .btn-sm { background: #0284c7; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: bold; }
+        
+        .promo-bar { background: #0f172a; color: #facc15; padding: 5px 10px; font-size: 10px; font-weight: bold; text-align: center; border-bottom: 1px solid #475569; }
+        
+        .menu-bar { display: flex; overflow-x: auto; background: #1e293b; padding: 6px; gap: 5px; white-space: nowrap; }
+        .menu-item { padding: 4px 10px; background: #475569; color: #fff; border-radius: 10px; font-size: 10px; cursor: pointer; border: none; }
+        .menu-item.active { background: var(--accent); font-weight: bold; }
+
+        .search-box { padding: 6px; background: #1e293b; }
+        .search-input { width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid #64748b; background: #0f172a; color: #fff; font-size: 11px; outline: none; }
+
+        .container { padding: 8px; max-width: 600px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        @media(min-width: 480px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+
+        .card { background: var(--card-bg); border-radius: 5px; padding: 4px; color: var(--text); cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; }
+        .card img { width: 100%; height: 75px; object-fit: cover; border-radius: 3px; background: #e2e8f0; }
+        .card-title { font-size: 9px; font-weight: bold; height: 22px; overflow: hidden; margin: 3px 0 1px 0; line-height: 1.2; }
+        .card-price { font-size: 10px; color: var(--red); font-weight: bold; }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 10px; }
+        .modal-body { background: #fff; color: var(--text); padding: 12px; border-radius: 8px; max-width: 320px; width: 100%; max-height: 85vh; overflow-y: auto; }
+
+        .form-group { margin-bottom: 5px; text-align: left; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 5px; font-size: 10px; border: 1px solid #cbd5e1; border-radius: 3px; }
+        .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #e2e8f0; font-size: 9px; }
+    </style>
+</head>
+<body>
+
+    <div class="header-bar">
+        <button class="btn-sm" style="background:#0284c7" onclick="openModal('guideModal')">📖 របៀបទិញ</button>
+        <h1 class="store-title" id="displayStoreTitle">ហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire</h1>
+        <button class="btn-sm" style="background:#475569" onclick="openAdmin()">⚙️ Admin</button>
+    </div>
+
+    <div class="promo-bar" id="displayPromo">⚡ ស្វាគមន៍មកកាន់ហាងគ្រឿងបន្លាស់ម៉ូតូ! ⚡</div>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 ស្វែងរកលឿន..." oninput="renderApp()">
+    </div>
+
+    <div class="menu-bar" id="menuBar">
+        <button class="menu-item active" onclick="setCategory('all', this)">ទាំងអស់</button>
+        <button class="menu-item" onclick="setCategory('tire_moto', this)">🛞 សំបកម៉ូតូ</button>
+        <button class="menu-item" onclick="setCategory('tube_moto', this)">⭕ ពោះវៀនម៉ូតូ</button>
+        <button class="menu-item" onclick="setCategory('battery', this)">🔋 អាគុយ</button>
+        <button class="menu-item" onclick="setCategory('chain', this)">⛓️ ច្រវាក់</button>
+        <button class="menu-item" onclick="setCategory('extra', this)">🛠️ បន្ថែម</button>
+    </div>
+
+    <div class="container">
+        <div class="grid" id="productGrid"></div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-body" style="text-align: center;">
+            <img id="mImg" style="width:100%; height:130px; object-fit:cover; border-radius:4px; background:#e2e8f0;">
+            <h3 id="mTitle" style="font-size:11px; margin:5px 0;"></h3>
+            <div style="font-size:10px; margin-bottom:5px;">តម្លៃ: <span id="mPrice" style="color:red; font-weight:bold;"></span></div>
+            <p id="mDesc" style="font-size:9px; color:#64748b; margin-bottom:10px;"></p>
+            <a id="mOrderBtn" href="#" target="_blank" class="btn-sm" style="background:var(--green); display:block; padding:8px; text-decoration:none;">🛒 បញ្ជាទិញតាម Telegram</a>
+            <button class="btn-sm" style="background:#64748b; width:100%; margin-top:5px; padding:6px;" onclick="closeModal('productModal')">បិទ</button>
+        </div>
+    </div>
+
+    <!-- Guide Modal -->
+    <div id="guideModal" class="modal">
+        <div class="modal-body">
+            <h3 style="font-size:12px; margin:0 0 6px 0;">📖 របៀបទិញទំនិញ</h3>
+            <p style="font-size:10px; color:#334155;">ចុចលើទំនិញដែលចង់បាន រួចចុច «បញ្ជាទិញតាម Telegram» ជាការស្រេច។</p>
+            <button class="btn-sm" style="background:#0284c7; width:100%;" onclick="closeModal('guideModal')">យល់ព្រម</button>
+        </div>
+    </div>
+
+    <!-- Ultra-Fast Admin Panel -->
+    <div id="adminModal" class="modal">
+        <div class="modal-body">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <h3 style="font-size:12px; margin:0;">⚙️ គ្រប់គ្រង Admin</h3>
+                <button class="btn-sm" style="background:red;" onclick="closeModal('adminModal')">✕</button>
+            </div>
+
+            <!-- Profile Settings -->
+            <div style="background:#f1f5f9; padding:6px; border-radius:4px; margin-bottom:8px;">
+                <div class="form-group"><input type="text" id="cfgTitle" placeholder="ឈ្មោះហាង"></div>
+                <div class="form-group"><input type="text" id="cfgPromo" placeholder="សារ Promotion"></div>
+                <div class="form-group"><input type="text" id="cfgTg" placeholder="Telegram Username (ឧ. SameanMom168)"></div>
+                <button class="btn-sm" style="background:#0284c7; width:100%;" onclick="saveConfig()">💾 រក្សាទុកព័ត៌មានហាង</button>
+            </div>
+
+            <!-- Add/Edit Product -->
+            <div style="background:#f1f5f9; padding:6px; border-radius:4px; margin-bottom:8px;">
+                <h4 style="font-size:10px; margin:0 0 4px 0;">➕ បន្ថែម / កែប្រែទំនិញ</h4>
+                <input type="hidden" id="pEditId">
+                <div class="form-group">
+                    <select id="pCat">
+                        <option value="tire_moto">សំបកម៉ូតូ</option>
+                        <option value="tube_moto">ពោះវៀនម៉ូតូ</option>
+                        <option value="battery">អាគុយ</option>
+                        <option value="chain">ច្រវាក់</option>
+                        <option value="extra">បន្ថែម</option>
+                    </select>
+                </div>
+                <div class="form-group"><input type="text" id="pName" placeholder="ឈ្មោះទំនិញ"></div>
+                <div class="form-group"><input type="text" id="pPrice" placeholder="តម្លៃ ($)"></div>
+                <div class="form-group"><input type="text" id="pImg" placeholder="Link រូបភាព (URL)"></div>
+                <div class="form-group"><textarea id="pDesc" placeholder="ការរៀបរាប់"></textarea></div>
+                <button class="btn-sm" style="background:var(--green); width:100%; margin-top:3px;" onclick="saveProduct()">💾 រក្សាទុកទំនិញ</button>
+            </div>
+
+            <div id="adminProductList" style="max-height:150px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PIN = "1234";
+
+        // Initial Ultra-Fast Engine State
+        let dbState = {
+            config: { title: "ហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire", promo: "⚡ បញ្ចុះតម្លៃពិសេស ១៥% លើសំបកកង់ម៉ូតូគ្រប់ប្រភេទ! ⚡", tg: "SameanMom168" },
+            products: [
+                { id: "1", category: "tire_moto", name: "សំបកកង់ម៉ូតូ 2.25-17", price: "8.5$", img: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=200", desc: "សំបកកង់ស្កូពី / ឌ្រីម គុណភាពខ្ពស់" },
+                { id: "2", category: "battery", name: "អាគុយម៉ូតូ 12V 5Ah", price: "12$", img: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=200", desc: "អាគុយស្ងួត ប្រើប្រាស់បានយូរ" }
+            ]
+        };
+
+        let currentCat = 'all';
+
+        // Load Cache Instantly (0.00ms execution)
+        (function initFast() {
+            const cached = localStorage.getItem('kk_ultra_db');
+            if (cached) {
+                try { dbState = JSON.parse(cached); } catch(e){}
+            }
+            renderApp();
+        })();
+
+        function saveToCache() {
+            localStorage.setItem('kk_ultra_db', JSON.stringify(dbState));
+            renderApp();
+        }
+
+        function renderApp() {
+            document.getElementById('displayStoreTitle').innerText = dbState.config.title;
+            document.getElementById('displayPromo').innerText = dbState.config.promo;
+            document.getElementById('pageTitle').innerText = dbState.config.title;
+
+            const grid = document.getElementById('productGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            grid.innerHTML = "";
+
+            let list = dbState.products;
+            if (currentCat !== 'all') list = list.filter(p => p.category === currentCat);
+            if (search) list = list.filter(p => p.name.toLowerCase().includes(search));
+
+            if(list.length === 0) {
+                grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; font-size:10px; color:#cbd5e1;">គ្មានទំនិញ</p>`;
+                return;
+            }
+
+            const frag = document.createDocumentFragment();
+            list.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openDetail(p.id);
+                card.innerHTML = `
+                    <img src="${p.img || 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=200'}" loading="lazy">
+                    <div class="card-title">${p.name}</div>
+                    <div class="card-price">${p.price}</div>
+                `;
+                frag.appendChild(card);
+            });
+            grid.appendChild(frag);
+        }
+
+        function setCategory(cat, el) {
+            currentCat = cat;
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            if(el) el.classList.add('active');
+            renderApp();
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function openDetail(id) {
+            const p = dbState.products.find(i => i.id === id);
+            if(!p) return;
+            document.getElementById('mImg').src = p.img || '';
+            document.getElementById('mTitle').innerText = p.name;
+            document.getElementById('mPrice').innerText = p.price;
+            document.getElementById('mDesc').innerText = p.desc || '';
+            
+            const msg = `🛒 បញ្ជាទិញ:\n📦 ${p.name}\n💰 តម្លៃ: ${p.price}`;
+            document.getElementById('mOrderBtn').href = `https://t.me/${dbState.config.tg || 'SameanMom168'}?text=` + encodeURIComponent(msg);
+            openModal('productModal');
+        }
+
+        function openAdmin() {
+            const pin = prompt("🔑 បញ្ចូល PIN Admin:");
+            if(pin !== ADMIN_PIN) { alert("❌ PIN មិនត្រឹមត្រូវ!"); return; }
+            
+            document.getElementById('cfgTitle').value = dbState.config.title;
+            document.getElementById('cfgPromo').value = dbState.config.promo;
+            document.getElementById('cfgTg').value = dbState.config.tg;
+
+            renderAdminList();
+            openModal('adminModal');
+        }
+
+        function saveConfig() {
+            dbState.config.title = document.getElementById('cfgTitle').value.trim() || dbState.config.title;
+            dbState.config.promo = document.getElementById('cfgPromo').value.trim() || dbState.config.promo;
+            dbState.config.tg = document.getElementById('cfgTg').value.trim() || dbState.config.tg;
+            saveToCache();
+            alert("💾 រក្សាទុកជោគជ័យ!");
+        }
+
+        function saveProduct() {
+            const editId = document.getElementById('pEditId').value;
+            const name = document.getElementById('pName').value.trim();
+            const price = document.getElementById('pPrice').value.trim();
+            const cat = document.getElementById('pCat').value;
+            const img = document.getElementById('pImg').value.trim();
+            const desc = document.getElementById('pDesc').value.trim();
+
+            if(!name || !price) { alert("សូមបំពេញឈ្មោះ និងតម្លៃ!"); return; }
+
+            if(editId) {
+                const idx = dbState.products.findIndex(p => p.id === editId);
+                if(idx !== -1) dbState.products[idx] = { id: editId, category: cat, name: name, price: price, img: img, desc: desc };
+            } else {
+                dbState.products.push({ id: Date.now().toString(), category: cat, name: name, price: price, img: img, desc: desc });
+            }
+
+            resetProductForm();
+            saveToCache();
+            renderAdminList();
+            alert("💾 រក្សាទុកទំនិញជោគជ័យ!");
+        }
+
+        function renderAdminList() {
+            const box = document.getElementById('adminProductList');
+            box.innerHTML = "";
+            dbState.products.forEach(p => {
+                const row = document.createElement('div');
+                row.className = 'admin-row';
+                row.innerHTML = `
+                    <span><b>${p.name}</b> (${p.price})</span>
+                    <div>
+                        <button class="btn-sm" style="background:#0284c7" onclick="editProd('${p.id}')">កែ</button>
+                        <button class="btn-sm" style="background:red" onclick="deleteProd('${p.id}')">លុប</button>
+                    </div>
+                `;
+                box.appendChild(row);
+            });
+        }
+
+        function editProd(id) {
+            const p = dbState.products.find(i => i.id === id);
+            if(!p) return;
+            document.getElementById('pEditId').value = p.id;
+            document.getElementById('pCat').value = p.category;
+            document.getElementById('pName').value = p.name;
+            document.getElementById('pPrice').value = p.price;
+            document.getElementById('pImg').value = p.img || '';
+            document.getElementById('pDesc').value = p.desc || '';
+        }
+
+        function resetProductForm() {
+            document.getElementById('pEditId').value = "";
+            document.getElementById('pName').value = "";
+            document.getElementById('pPrice').value = "";
+            document.getElementById('pImg').value = "";
+            document.getElementById('pDesc').value = "";
+        }
+
+        function deleteProd(id) {
+            if(confirm("តើចង់លុបមែនទេ?")) {
+                dbState.products = dbState.products.filter(p => p.id !== id);
+                saveToCache();
+                renderAdminList();
+            }
+        }
+    </script>
+</body>
+</html>
