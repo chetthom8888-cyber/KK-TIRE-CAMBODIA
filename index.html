@@ -1,0 +1,21 @@
+{
+  "rules": {
+    "kk_shop": {
+      ".read": true,
+      "config": {
+        ".write": "auth != null"
+      },
+      "promos": {
+        ".write": "auth != null"
+      },
+      "products": {
+        ".write": "auth != null",
+        "$product_id": {
+          "views": {
+            ".write": true
+          }
+        }
+      }
+    }
+  }
+}
