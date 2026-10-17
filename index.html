@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="dark">
     <title id="pageTitle">ហាងគ្រឿងបន្លាស់ម៉ូតូ - KK Tire Cambodia</title>
     
-    <!-- Fonts Optimization: display=swap & Khmer Bokor -->
+    <!-- Fonts Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bayon&family=Khmer+Bokor&family=Moul&family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet">
@@ -327,7 +327,6 @@
     </div>
 
     <script>
-        // កំណត់ Telegram Username របស់អ្នកដែលជា Admin ផ្ដល់សុវត្ថិភាពខ្ពស់
         const ALLOWED_ADMIN_USERNAME = "SameanMom168";
         const DEFAULT_IMG_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='100%' height='100%' fill='%231e293b'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23475569' font-size='12'>No Image</text></svg>";
         let isAdminAuthenticated = false;
@@ -416,7 +415,7 @@
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 renderApp();
-            }, 80);
+            }, 50);
         }
 
         function renderApp() {
@@ -512,7 +511,6 @@
             openModal('viewAllModal');
         }
 
-        // ការពារកម្រិតខ្ពស់ដោយផ្ទៀងផ្ទាត់តាម Telegram Username ផ្ទាល់
         function checkAndOpenAdmin() {
             if (isAdminAuthenticated) {
                 openAdminPanelDirectly();
