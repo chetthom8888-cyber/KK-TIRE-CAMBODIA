@@ -11,8 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Bayon&family=Khmer+Bokor&family=Moul&family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet">
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
         :root { --primary: #0f172a; --accent: #ff6e40; --bg: #1e293b; --card-bg: #334155; --text: #f8fafc; --red: #ef4444; --green: #22c55e; }
@@ -315,7 +313,9 @@
     <script>
         const DEFAULT_IMG_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='100%' height='100%' fill='%231e293b'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23475569' font-size='12'>No Image</text></svg>";
 
-        window.dbState = {
+        // ទាញទិន្នន័យពី LocalStorage ភ្លាមៗ (ធានាថាបើកភ្លាម ចេញភ្លាមដោយមិនបាច់រង់ចាំ Server)
+        const savedData = localStorage.getItem('kk_shop_local_data');
+        window.dbState = savedData ? JSON.parse(savedData) : {
             config: { 
                 title: "ហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire", 
                 tg: "SameanMom168", 
@@ -334,55 +334,22 @@
         window.tempCroppedImgs = []; 
         window.currentProduct = null;
         window.currentQty = 1;
-        window.dbRef = null;
 
         document.addEventListener("DOMContentLoaded", () => {
-            try {
-                const firebaseConfig = {
-                    apiKey: "AIzaSyDmE5ZFcr_RumLO9MmxJlbcomI",
-                    authDomain: "kk-tire-store.firebaseapp.com",
-                    databaseURL: "https://kk-tire-shop-default-rtdb.firebaseio.com",
-                    projectId: "kk-tire-store",
-                    storageBucket: "kk-tire-store.firebasestorage.app",
-                    messagingSenderId: "1011278846247",
-                    appId: "1:1011278846247:web:76b9385872600"
-                };
-
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-
-                window.dbRef = firebase.database().ref('kk_shop');
-                
-                window.dbRef.on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data) {
-                        window.dbState = {
-                            config: { ...window.dbState.config, ...(data.config || {}) },
-                            promos: data.promos || window.dbState.promos,
-                            products: data.products || window.dbState.products
-                        };
-                    }
-                    renderApp();
-                    if (document.getElementById('adminModal').style.display === 'flex') {
-                        renderAdminList();
-                    }
-                }, err => {
-                    console.warn("Firebase Read Error:", err);
-                    renderApp();
-                });
-
-            } catch(err) {
-                console.warn("Firebase Init Bypass:", err);
-                renderApp();
+            renderApp();
+            if (window.Telegram && window.Telegram.WebApp) {
+                try {
+                    window.Telegram.WebApp.ready();
+                    window.Telegram.WebApp.expand();
+                } catch(e){}
             }
         });
 
-        function syncToFirebase() {
-            if (window.dbRef) {
-                window.dbRef.set(window.dbState).catch(err => {
-                    console.warn("Sync error:", err);
-                });
+        function saveDataToLocal() {
+            try {
+                localStorage.setItem('kk_shop_local_data', JSON.stringify(window.dbState));
+            } catch(e) {
+                console.warn("Local storage full or error:", e);
             }
         }
 
@@ -446,7 +413,7 @@
                 if (p.isNew && !isViewed) badgeHtml = `<div class="badge-tag badge-new">✨ ថ្មី</div>`;
                 else if ((p.views || 0) > 5) badgeHtml = `<div class="badge-tag badge-pop">🔥 ពេញនិយម</div>`;
 
-                const displayImg = p.coverImg || ((p.images && p.images.length > 0) ? p.images[0] : (p.img || DEFAULT_IMG_PLACEHOLDER));
+                const displayImg = p.coverImg || ((p.images && p.images.length > 0) ? p.images[0] : DEFAULT_IMG_PLACEHOLDER);
 
                 card.innerHTML = `
                     ${badgeHtml}
@@ -565,7 +532,7 @@
             if(!p) return;
 
             p.views = (p.views || 0) + 1;
-            syncToFirebase();
+            saveDataToLocal();
 
             window.currentProduct = p;
             window.currentQty = 1;
@@ -581,7 +548,7 @@
             if (p.images && p.images.length > 0) {
                 p.images.forEach(img => { if (!images.includes(img)) images.push(img); });
             }
-            if (images.length === 0) images.push(p.img || DEFAULT_IMG_PLACEHOLDER);
+            if (images.length === 0) images.push(DEFAULT_IMG_PLACEHOLDER);
             
             const mainImg = document.getElementById('mImgMain');
             mainImg.src = images[0];
@@ -629,7 +596,7 @@
             window.dbState.config.about = document.getElementById('cfgAbout').value.trim() || window.dbState.config.about;
             window.dbState.config.guide = document.getElementById('cfgGuide').value.trim() || window.dbState.config.guide;
             
-            syncToFirebase();
+            saveDataToLocal();
             renderApp();
             alert("💾 រក្សាទុកជោគជ័យ!");
         }
@@ -640,7 +607,7 @@
             if(!window.dbState.promos) window.dbState.promos = [];
             window.dbState.promos.push(val);
             document.getElementById('newPromoInput').value = "";
-            syncToFirebase();
+            saveDataToLocal();
             renderAdminPromoList();
             renderApp();
         }
@@ -648,7 +615,7 @@
         function deletePromoText(idx) {
             if(confirm("តើចង់លុប Promotion នេះមែនទេ?")) {
                 window.dbState.promos.splice(idx, 1);
-                syncToFirebase();
+                saveDataToLocal();
                 renderAdminPromoList();
                 renderApp();
             }
@@ -740,11 +707,11 @@
                 window.dbState.products.unshift(newProductObj);
             }
 
-            syncToFirebase();
+            saveDataToLocal();
             resetProductForm();
             renderAdminList();
             renderApp();
-            alert("💾 រក្សាទុកទំនិញជោគជ័យ!");
+            alert("💾 រក្សាទុកទំនិញជោគជ័យ និងបង្ហាញភ្លាមៗ!");
         }
 
         function editProd(id) {
@@ -787,7 +754,7 @@
         function deleteProd(id) {
             if(confirm("តើចង់លុបមែនទេ?")) {
                 window.dbState.products = window.dbState.products.filter(p => p.id !== id);
-                syncToFirebase();
+                saveDataToLocal();
                 renderAdminList();
                 renderApp();
             }
