@@ -332,7 +332,9 @@
         let isAdminAuthenticated = false;
         let searchTimeout = null;
 
-        window.dbState = {
+        // Load cached state from LocalStorage immediately for instant UI render
+        const cachedData = localStorage.getItem('kk_shop_cache');
+        let initialDbState = cachedData ? JSON.parse(cachedData) : {
             config: { 
                 title: "ហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire", 
                 tg: "SameanMom168", 
@@ -345,6 +347,7 @@
             ]
         };
 
+        window.dbState = initialDbState;
         window.viewedProductIds = JSON.parse(localStorage.getItem('kk_viewed_ids') || "[]");
         window.currentCat = 'all';
         window.tempCoverImg = "";
@@ -354,6 +357,7 @@
         window.dbRef = null;
 
         document.addEventListener("DOMContentLoaded", () => {
+            // Render immediately using cache/default state for ultra-fast load
             renderApp();
 
             if (window.Telegram && window.Telegram.WebApp) {
@@ -363,41 +367,47 @@
                 } catch(e){}
             }
 
-            try {
-                const firebaseConfig = {
-                    apiKey: "AIzaSyDmE5ZFcr_RumLO9MmxJlbcomI",
-                    authDomain: "kk-tire-store.firebaseapp.com",
-                    databaseURL: "https://kk-tire-shop-default-rtdb.firebaseio.com",
-                    projectId: "kk-tire-store",
-                    storageBucket: "kk-tire-store.firebasestorage.app",
-                    messagingSenderId: "1011278846247",
-                    appId: "1:1011278846247:web:76b9385872600"
-                };
+            // Non-blocking Firebase initialization
+            setTimeout(() => {
+                try {
+                    const firebaseConfig = {
+                        apiKey: "AIzaSyDmE5ZFcr_RumLO9MmxJlbcomI",
+                        authDomain: "kk-tire-store.firebaseapp.com",
+                        databaseURL: "https://kk-tire-shop-default-rtdb.firebaseio.com",
+                        projectId: "kk-tire-store",
+                        storageBucket: "kk-tire-store.firebasestorage.app",
+                        messagingSenderId: "1011278846247",
+                        appId: "1:1011278846247:web:76b9385872600"
+                    };
 
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-
-                window.dbRef = firebase.database().ref('kk_shop');
-                
-                window.dbRef.on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data) {
-                        window.dbState = {
-                            config: { ...window.dbState.config, ...data.config },
-                            promos: data.promos || [],
-                            products: data.products || []
-                        };
-                        renderApp();
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
                     }
-                }, (err) => console.warn("Firebase Read Error:", err));
 
-            } catch(err) {
-                console.warn("Firebase Init Bypass:", err);
-            }
+                    window.dbRef = firebase.database().ref('kk_shop');
+                    
+                    window.dbRef.on('value', (snapshot) => {
+                        const data = snapshot.val();
+                        if (data) {
+                            window.dbState = {
+                                config: { ...window.dbState.config, ...data.config },
+                                promos: data.promos || [],
+                                products: data.products || []
+                            };
+                            // Save to local cache for next fast launch
+                            localStorage.setItem('kk_shop_cache', JSON.stringify(window.dbState));
+                            renderApp();
+                        }
+                    }, (err) => console.warn("Firebase Read Error:", err));
+
+                } catch(err) {
+                    console.warn("Firebase Init Bypass:", err);
+                }
+            }, 10);
         });
 
         function syncToFirebase() {
+            localStorage.setItem('kk_shop_cache', JSON.stringify(window.dbState));
             if (window.dbRef) {
                 window.dbRef.set(window.dbState).catch(err => {
                     console.warn("Sync error:", err);
@@ -435,7 +445,8 @@
                 });
                 document.getElementById('displayPromoFullList').innerHTML = promoFullHtml || "គ្មាន Promotion ទេ";
 
-                const search = document.getElementById('searchInput').value.toLowerCase().trim();
+                const searchElem = document.getElementById('searchInput');
+                const search = searchElem ? searchElem.value.toLowerCase().trim() : "";
                 let rawList = [...(dbState.products || [])];
 
                 if (search) rawList = rawList.filter(p => p.name.toLowerCase().includes(search));
