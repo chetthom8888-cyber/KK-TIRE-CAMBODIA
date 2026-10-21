@@ -380,7 +380,7 @@
 
                 window.dbRef = firebase.database().ref('kk_shop');
                 
-                window.dbRef.once('value').then((snapshot) => {
+                window.dbRef.on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
                         window.dbState = {
@@ -390,7 +390,7 @@
                         };
                         renderApp();
                     }
-                }).catch(err => console.warn("Firebase Read Error:", err));
+                }, (err) => console.warn("Firebase Read Error:", err));
 
             } catch(err) {
                 console.warn("Firebase Init Bypass:", err);
