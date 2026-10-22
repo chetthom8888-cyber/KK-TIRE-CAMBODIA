@@ -332,9 +332,27 @@
         let isAdminAuthenticated = false;
         let searchTimeout = null;
 
-        // Load cached state from LocalStorage immediately for instant UI render
-        const cachedData = localStorage.getItem('kk_shop_cache');
-        let initialDbState = cachedData ? JSON.parse(cachedData) : {
+        // Safe LocalStorage helper preventing QuotaExceeded errors
+        function safeGetLocalStorage(key) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function safeSetLocalStorage(key, val) {
+            try {
+                localStorage.setItem(key, JSON.stringify(val));
+            } catch (e) {
+                console.warn("LocalStorage storage full:", e);
+            }
+        }
+
+        // Initial State using Object Map for products to prevent array corruption
+        const cachedData = safeGetLocalStorage('kk_shop_cache');
+        let initialDbState = cachedData || {
             config: { 
                 title: "ហាងគ្រឿងបន្លាស់ម៉ូតូ KK Tire", 
                 tg: "SameanMom168", 
@@ -342,13 +360,20 @@
                 guide: "សូមចុចលើរូបភាពទំនិញដើម្បីមើលព័ត៌មានលម្អិត និងតម្លៃ ព្រមទាំងអាចចរចាផ្ទាល់តាម Telegram ជាមួយហាងផ្ទាល់!"
             },
             promos: ["បញ្ចុះតម្លៃពិសេស ១៥% លើសំបកកង់ម៉ូតូគ្រប់ប្រភេទ!", "សេវាកម្មដឹកជញ្ជូនរហ័សទូទាំង ២៥ ខេត្តក្រុង!"],
-            products: [
-                { id: "1", category: "tire_moto", name: "សំបកកង់ម៉ូតូ 2.25-17", priceFull: "10$", priceNet: "8.5$", coverImg: "", images: [], desc: "គុណភាពខ្ពស់ ស្កូពី/ឌ្រីម", views: 0, isNew: true }
-            ]
+            products: {
+                "1": { id: "1", category: "tire_moto", name: "សំបកកង់ម៉ូតូ 2.25-17", priceFull: "10$", priceNet: "8.5$", coverImg: "", images: [], desc: "គុណភាពខ្ពស់ ស្កូពី/ឌ្រីម", views: 0, isNew: true }
+            }
         };
 
+        // Normalize products to object format if loaded as array from old cache
+        if (Array.isArray(initialDbState.products)) {
+            let prodObj = {};
+            initialDbState.products.forEach(p => { if (p && p.id) prodObj[p.id] = p; });
+            initialDbState.products = prodObj;
+        }
+
         window.dbState = initialDbState;
-        window.viewedProductIds = JSON.parse(localStorage.getItem('kk_viewed_ids') || "[]");
+        window.viewedProductIds = safeGetLocalStorage('kk_viewed_ids') || [];
         window.currentCat = 'all';
         window.tempCoverImg = "";
         window.tempCroppedImgs = []; 
@@ -388,12 +413,19 @@
                     window.dbRef.on('value', (snapshot) => {
                         const data = snapshot.val();
                         if (data) {
+                            let remoteProducts = {};
+                            if (Array.isArray(data.products)) {
+                                data.products.forEach(p => { if (p && p.id) remoteProducts[p.id] = p; });
+                            } else if (data.products) {
+                                remoteProducts = data.products;
+                            }
+
                             window.dbState = {
                                 config: { ...window.dbState.config, ...data.config },
                                 promos: data.promos || [],
-                                products: data.products || []
+                                products: remoteProducts
                             };
-                            localStorage.setItem('kk_shop_cache', JSON.stringify(window.dbState));
+                            safeSetLocalStorage('kk_shop_cache', window.dbState);
                             renderApp();
                         }
                     }, (err) => console.warn("Firebase Read Error:", err));
@@ -405,7 +437,7 @@
         });
 
         function syncToFirebase() {
-            localStorage.setItem('kk_shop_cache', JSON.stringify(window.dbState));
+            safeSetLocalStorage('kk_shop_cache', window.dbState);
             if (window.dbRef) {
                 window.dbRef.set(window.dbState).catch(err => {
                     console.warn("Sync error:", err);
@@ -445,7 +477,8 @@
 
                 const searchElem = document.getElementById('searchInput');
                 const search = searchElem ? searchElem.value.toLowerCase().trim() : "";
-                let rawList = [...(dbState.products || [])];
+                
+                let rawList = Object.values(dbState.products || {});
 
                 if (search) rawList = rawList.filter(p => p.name.toLowerCase().includes(search));
                 if (window.currentCat !== 'all') rawList = rawList.filter(p => p.category === window.currentCat);
@@ -499,7 +532,7 @@
 
         function openViewAllModal(type) {
             const search = document.getElementById('searchInput').value.toLowerCase().trim();
-            let rawList = [...(window.dbState.products || [])];
+            let rawList = Object.values(window.dbState.products || {});
 
             if (search) rawList = rawList.filter(p => p.name.toLowerCase().includes(search));
             if (window.currentCat !== 'all') rawList = rawList.filter(p => p.category === window.currentCat);
@@ -619,7 +652,7 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
         function openDetail(id) {
-            const p = window.dbState.products.find(i => i.id === id);
+            const p = window.dbState.products[id];
             if(!p) return;
 
             p.views = (p.views || 0) + 1;
@@ -630,7 +663,7 @@
 
             if (!window.viewedProductIds.includes(p.id)) {
                 window.viewedProductIds.push(p.id);
-                localStorage.setItem('kk_viewed_ids', JSON.stringify(window.viewedProductIds));
+                safeSetLocalStorage('kk_viewed_ids', window.viewedProductIds);
             }
             renderApp();
 
@@ -734,7 +767,7 @@
             const box = document.getElementById('adminProductList');
             if(!box) return;
             box.innerHTML = "";
-            let list = [...(window.dbState.products || [])];
+            let list = Object.values(window.dbState.products || {});
 
             const selectedCat = document.getElementById('adminCatFilter')?.value || 'all';
             if (selectedCat !== 'all') {
@@ -750,7 +783,7 @@
                 const row = document.createElement('div');
                 row.className = 'admin-row';
                 row.innerHTML = `
-                    <span><b>${p.name}</b> (${p.priceFull || p.price}) - 👁️ ${p.views || 0}</span>
+                    <span><b>${p.name}</b> (${p.priceFull || p.price || 'ចរចា'}) - 👁️ ${p.views || 0}</span>
                     <div>
                         <button class="btn-sm" style="background:#0284c7" onclick="editProd('${p.id}')">កែ</button>
                         <button class="btn-sm" style="background:#ef4444" onclick="deleteProd('${p.id}')">លុប</button>
@@ -771,27 +804,26 @@
 
             if(!name) { alert("សូមបំពេញឈ្មោះទំនិញ!"); return; }
 
-            if(!window.dbState.products) window.dbState.products = [];
-            const existing = editId ? window.dbState.products.find(p => p.id === editId) : null;
+            if(!window.dbState.products) window.dbState.products = {};
+            const existing = editId ? window.dbState.products[editId] : null;
             
             const cover = window.tempCoverImg || (existing ? existing.coverImg : "");
             const imgs = (window.tempCroppedImgs.length > 0) ? window.tempCroppedImgs : (existing ? (existing.images || []) : []);
 
-            if(editId) {
-                const idx = window.dbState.products.findIndex(p => p.id === editId);
-                if(idx !== -1) {
-                    window.dbState.products[idx] = { 
-                        ...window.dbState.products[idx], 
-                        category: cat, name: name, priceFull: priceFull, priceNet: priceNet, 
-                        coverImg: cover, images: imgs, desc: desc
-                    };
-                }
-            } else {
-                window.dbState.products.unshift({ 
-                    id: Date.now().toString(), category: cat, name: name, priceFull: priceFull, priceNet: priceNet, 
-                    coverImg: cover, images: imgs, desc: desc, views: 0, isNew: true 
-                });
-            }
+            const productId = editId ? editId : Date.now().toString();
+
+            window.dbState.products[productId] = { 
+                id: productId, 
+                category: cat, 
+                name: name, 
+                priceFull: priceFull, 
+                priceNet: priceNet, 
+                coverImg: cover, 
+                images: imgs, 
+                desc: desc,
+                views: existing ? (existing.views || 0) : 0,
+                isNew: existing ? existing.isNew : true 
+            };
 
             resetProductForm();
             syncToFirebase();
@@ -801,7 +833,7 @@
         }
 
         function editProd(id) {
-            const p = window.dbState.products.find(i => i.id === id);
+            const p = window.dbState.products[id];
             if(!p) return;
             document.getElementById('pEditId').value = p.id;
             document.getElementById('pCat').value = p.category;
@@ -840,7 +872,7 @@
         function deleteProd(id) {
             if(!isAdminAuthenticated) return;
             if(confirm("តើចង់លុបមែនទេ?")) {
-                window.dbState.products = window.dbState.products.filter(p => p.id !== id);
+                delete window.dbState.products[id];
                 syncToFirebase();
                 renderAdminList();
                 renderApp();
