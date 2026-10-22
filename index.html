@@ -9,7 +9,7 @@
     <!-- Fonts Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bayon&family=Khmer+Bokor&family=Moul&family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bayon&family=Khmer+Bokor&family=Moul&display=swap" rel="stylesheet">
     
     <!-- SDKs -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -19,7 +19,7 @@
     <style>
         :root { --primary: #0f172a; --accent: #ff6e40; --bg: #1e293b; --card-bg: #334155; --text: #f8fafc; --red: #ef4444; --green: #22c55e; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Kantumruy Pro', -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 70px; color: var(--text); color-scheme: dark; }
+        body { font-family: 'Khmer Bokor', cursive, sans-serif; background: var(--bg); margin: 0; padding-bottom: 70px; color: var(--text); color-scheme: dark; }
         
         .sticky-top-wrapper { position: sticky; top: 0; z-index: 999; background: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .header-bar { background: var(--primary); padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
@@ -32,7 +32,7 @@
             100% { color: #ff3333; text-shadow: 0 0 8px #ff0000; }
         }
         .store-title { font-family: 'Moul', cursive; font-size: 13px; margin: 0; text-align: center; animation: ledMultiColor 3s infinite linear; line-height: 1.4; }
-        .btn-sm { background: #0284c7; color: #fff; border: none; padding: 5px 8px; border-radius: 4px; font-size: 9.5px; cursor: pointer; font-weight: bold; white-space: nowrap; font-family: 'Kantumruy Pro', sans-serif; }
+        .btn-sm { background: #0284c7; color: #fff; border: none; padding: 5px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: bold; white-space: nowrap; font-family: 'Khmer Bokor', cursive, sans-serif; }
         
         .promo-bar { background: #020617; color: #ffffff; padding: 6px 0; font-size: 12px; font-family: 'Bayon', cursive; letter-spacing: 0.5px; overflow: hidden; white-space: nowrap; cursor: pointer; position: relative; }
         .promo-marquee { display: inline-block; white-space: nowrap; color: #ffffff; will-change: transform; animation: marqueeScroll 25s linear infinite; }
@@ -46,11 +46,11 @@
         @keyframes ledFlowRight { 0% { background-position: 0% 0; } 100% { background-position: 200% 0; } }
 
         .search-about-bar { display: flex; gap: 6px; padding: 6px; background: #0f172a; align-items: center; }
-        .search-input { flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; font-size: 11px; outline: none; font-family: 'Kantumruy Pro', sans-serif; }
+        .search-input { flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #fff; font-size: 11px; outline: none; font-family: 'Khmer Bokor', cursive, sans-serif; }
 
         .menu-bar { display: flex; overflow-x: auto; background: #0f172a; padding: 6px; gap: 5px; white-space: nowrap; scrollbar-width: none; border-top: 1px solid #334155; }
         .menu-bar::-webkit-scrollbar { display: none; }
-        .menu-item { padding: 5px 12px; background: #334155; color: #e2e8f0; border-radius: 12px; font-size: 10px; cursor: pointer; border: none; font-family: 'Kantumruy Pro', sans-serif; }
+        .menu-item { padding: 5px 12px; background: #334155; color: #e2e8f0; border-radius: 12px; font-size: 10.5px; cursor: pointer; border: none; font-family: 'Khmer Bokor', cursive, sans-serif; }
         .menu-item.active { background: var(--accent); color: #ffffff; font-weight: bold; }
 
         .container { padding: 8px; width: 100%; margin: 0 auto; }
@@ -61,20 +61,19 @@
 
         .section-wrapper { margin-bottom: 16px; background: #0f172a; padding: 8px; border-radius: 8px; border: 1px solid #334155; content-visibility: auto; contain-intrinsic-size: 1px 300px; }
         .section-title { font-size: 12px; color: #38bdf8; margin: 0 0 8px 0; font-weight: bold; border-left: 4px solid var(--accent); padding-left: 6px; display: flex; justify-content: space-between; align-items: center; }
-        .view-more-btn { font-size: 9.5px; color: #facc15; cursor: pointer; font-weight: bold; text-decoration: none; border: 1px solid #facc15; padding: 2px 6px; border-radius: 4px; }
+        .view-more-btn { font-size: 10px; color: #facc15; cursor: pointer; font-weight: bold; text-decoration: none; border: 1px solid #facc15; padding: 2px 6px; border-radius: 4px; }
 
         .card { background: var(--card-bg); border-radius: 6px; padding: 4px; color: var(--text); cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #475569; position: relative; overflow: hidden; contain: content; }
         .card img { width: 100%; height: 85px; object-fit: cover; border-radius: 4px; background: #1e293b; image-rendering: -webkit-optimize-contrast; }
-        .card-title { font-size: 10px; font-weight: bold; height: 15px; overflow: hidden; margin: 4px 0 1px 0; white-space: nowrap; text-overflow: ellipsis; color: #f1f5f9; }
-        .card-desc { font-size: 8.5px; color: #94a3b8; height: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 2px; }
-        .card-price { font-size: 10.5px; color: #38bdf8; font-weight: bold; }
-        .badge-tag { position: absolute; top: 4px; left: 4px; font-size: 7.5px; font-weight: bold; padding: 2px 4px; border-radius: 3px; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.6); }
+        .card-title { font-size: 10.5px; font-weight: bold; height: 16px; overflow: hidden; margin: 4px 0 1px 0; white-space: nowrap; text-overflow: ellipsis; color: #f1f5f9; }
+        .card-desc { font-size: 9px; color: #94a3b8; height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 2px; }
+        .card-price { font-size: 11px; color: #38bdf8; font-weight: bold; }
+        .badge-tag { position: absolute; top: 4px; left: 4px; font-size: 8px; font-weight: bold; padding: 2px 4px; border-radius: 3px; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.6); }
         .badge-new { background: #ef4444; color: #fff; }
         .badge-pop { background: #f59e0b; color: #fff; }
 
         .bokor-notice-box {
-            font-family: 'Khmer Bokor', cursive;
-            font-size: 10.5px;
+            font-size: 11px;
             color: #facc15;
             background: #020617;
             padding: 6px;
@@ -89,10 +88,10 @@
         .modal-body { background: #1e293b; color: #f8fafc; padding: 12px; border-radius: 8px; max-width: 380px; width: 100%; max-height: 85vh; overflow-y: auto; border: 1px solid #475569; }
 
         .form-group { margin-bottom: 6px; text-align: left; }
-        .form-group label { display: block; font-size: 9px; color: #94a3b8; margin-bottom: 2px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 6px; font-size: 10px; border: 1px solid #475569; border-radius: 4px; background: #0f172a; color: #fff; font-family: 'Kantumruy Pro', sans-serif; }
-        .file-upload-btn { border: 2px dashed #0284c7; padding: 8px; text-align: center; border-radius: 4px; background: #0f172a; color: #38bdf8; cursor: pointer; font-size: 10px; font-weight: bold; margin-bottom: 4px; }
-        .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #334155; font-size: 9px; }
+        .form-group label { display: block; font-size: 10px; color: #94a3b8; margin-bottom: 2px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 6px; font-size: 10.5px; border: 1px solid #475569; border-radius: 4px; background: #0f172a; color: #fff; font-family: 'Khmer Bokor', cursive, sans-serif; }
+        .file-upload-btn { border: 2px dashed #0284c7; padding: 8px; text-align: center; border-radius: 4px; background: #0f172a; color: #38bdf8; cursor: pointer; font-size: 10.5px; font-weight: bold; margin-bottom: 4px; }
+        .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #334155; font-size: 10px; }
         .qty-btn { width: 26px; height: 26px; background: #0284c7; color: #fff; border: none; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; }
 
         .img-gallery-preview { display: flex; gap: 4px; overflow-x: auto; margin-top: 4px; scrollbar-width: thin; }
@@ -147,8 +146,8 @@
         <!-- ផ្នែកទំនិញថ្មី -->
         <div class="section-wrapper" id="secNewWrapper">
             <div class="section-title">
-                <span>✨ ទំនិញថ្មីៗ</span>
-                <span class="view-more-btn" onclick="openViewAllModal('new')">មើលទាំងអស់ ➔</span>
+                <span>ទំនិញថ្មីៗ</span>
+                <span class="view-more-btn" onclick="openViewAllModal('new')">មើលទាំងអស់</span>
             </div>
             <div class="grid" id="gridNew"></div>
         </div>
@@ -156,8 +155,8 @@
         <!-- ផ្នែកទំនិញពេញនិយម -->
         <div class="section-wrapper" id="secPopularWrapper">
             <div class="section-title">
-                <span>🔥 ទំនិញពេញនិយម</span>
-                <span class="view-more-btn" onclick="openViewAllModal('popular')">មើលទាំងអស់ ➔</span>
+                <span>ទំនិញពេញនិយម</span>
+                <span class="view-more-btn" onclick="openViewAllModal('popular')">មើលទាំងអស់</span>
             </div>
             <div class="grid" id="gridPopular"></div>
         </div>
@@ -165,7 +164,7 @@
         <!-- ផ្នែកទំនិញទាំងអស់ -->
         <div class="section-wrapper" id="secAllWrapper">
             <div class="section-title">
-                <span>📦 ទំនិញទាំងអស់</span>
+                <span>ទំនិញទាំងអស់</span>
             </div>
             <div class="grid" id="gridAll"></div>
         </div>
@@ -176,7 +175,7 @@
         <div class="modal-body" style="max-width: 600px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 id="viewAllTitle" style="font-size:12px; margin:0; color:#38bdf8;"></h3>
-                <button class="btn-sm" style="background:#ef4444;" onclick="closeModal('viewAllModal')">✕</button>
+                <button class="btn-sm" style="background:#ef4444;" onclick="closeModal('viewAllModal')">បិទ</button>
             </div>
             <div class="grid" id="gridModalViewAll"></div>
         </div>
@@ -196,13 +195,13 @@
                 ( ទំនិញទាំងអស់ រួមទាំងតម្លៃ និង Promotion ស្ថិតក្រោមការចរចាជាមួយអ្នកលក់ )
             </div>
 
-            <div style="font-size:10.5px; margin-bottom:6px; background:#0f172a; padding:7px; border-radius:4px; border:1px solid #334155;">
+            <div style="font-size:11px; margin-bottom:6px; background:#0f172a; padding:7px; border-radius:4px; border:1px solid #334155;">
                 តម្លៃពេញ: <span id="mPriceFull" style="color:#38bdf8; font-weight:bold;"></span> 
                 &nbsp;|&nbsp; 
                 តម្លៃនេត: <span id="mPriceNet" style="color:#ef4444; font-weight:bold;"></span>
             </div>
 
-            <p id="mDesc" style="font-size:9.5px; color:#94a3b8; margin-bottom:8px; text-align:left; white-space:pre-line;"></p>
+            <p id="mDesc" style="font-size:10px; color:#94a3b8; margin-bottom:8px; text-align:left; white-space:pre-line;"></p>
 
             <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px;">
                 <button class="qty-btn" onclick="adjustQty(-1)">-</button>
@@ -210,7 +209,7 @@
                 <button class="qty-btn" onclick="adjustQty(1)">+</button>
             </div>
 
-            <a id="mOrderBtn" href="#" target="_blank" class="btn-sm" style="background:var(--green); display:block; padding:8px; text-decoration:none;">បញ្ជាទិញតាម Telegram</a>
+            <a id="mOrderBtn" href="#" target="_blank" class="btn-sm" style="background:var(--green); display:block; padding:8px; text-decoration:none; text-align:center;">បញ្ជាទិញតាម Telegram</a>
             <button class="btn-sm" style="background:#475569; width:100%; margin-top:6px; padding:6px;" onclick="closeModal('productModal')">បិទ</button>
         </div>
     </div>
@@ -218,9 +217,9 @@
     <!-- Promo List Modal -->
     <div id="promoListModal" class="modal">
         <div class="modal-body">
-            <h3 style="font-size:12px; margin:0 0 8px 0; color:#facc15;">🔥 កម្មវិធី Promotion ទាំងអស់</h3>
+            <h3 style="font-size:12px; margin:0 0 8px 0; color:#facc15;">កម្មវិធី Promotion ទាំងអស់</h3>
             <div class="bokor-notice-box" style="margin-bottom:8px;">( ទំនិញទាំងអស់ រួមទាំងតម្លៃ និង Promotion ស្ថិតក្រោមការចរចាជាមួយអ្នកលក់ )</div>
-            <div id="displayPromoFullList" style="font-size:10px; color:#cbd5e1; line-height:1.6; text-align:left;"></div>
+            <div id="displayPromoFullList" style="font-size:10.5px; color:#cbd5e1; line-height:1.6; text-align:left;"></div>
             <button class="btn-sm" style="background:#475569; width:100%; margin-top:10px;" onclick="closeModal('promoListModal')">បិទ</button>
         </div>
     </div>
@@ -229,7 +228,7 @@
     <div id="guideModal" class="modal">
         <div class="modal-body">
             <h3 style="font-size:12px; margin:0 0 6px 0; color:#38bdf8;">របៀបទិញទំនិញ</h3>
-            <p id="displayGuideText" style="font-size:10px; color:#cbd5e1; line-height:1.5; white-space:pre-line;"></p>
+            <p id="displayGuideText" style="font-size:10.5px; color:#cbd5e1; line-height:1.5; white-space:pre-line;"></p>
             <button class="btn-sm" style="background:#0284c7; width:100%;" onclick="closeModal('guideModal')">យល់ព្រម</button>
         </div>
     </div>
@@ -238,7 +237,7 @@
     <div id="aboutModal" class="modal">
         <div class="modal-body">
             <h3 style="font-size:12px; margin:0 0 6px 0; color:#38bdf8;">អំពីយើងខ្ញុំ</h3>
-            <div id="displayAboutText" style="font-size:10px; color:#cbd5e1; line-height:1.6; white-space:pre-line;"></div>
+            <div id="displayAboutText" style="font-size:10.5px; color:#cbd5e1; line-height:1.6; white-space:pre-line;"></div>
             <button class="btn-sm" style="background:#0284c7; width:100%; margin-top:10px;" onclick="closeModal('aboutModal')">បិទ</button>
         </div>
     </div>
@@ -248,7 +247,7 @@
         <div class="modal-body">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <h3 style="font-size:12px; margin:0; color:#38bdf8;">គ្រប់គ្រងទិន្នន័យហាង (Admin)</h3>
-                <button class="btn-sm" style="background:#ef4444;" onclick="closeModal('adminModal')">✕</button>
+                <button class="btn-sm" style="background:#ef4444;" onclick="closeModal('adminModal')">បិទ</button>
             </div>
 
             <div style="background:#0f172a; padding:6px; border-radius:4px; margin-bottom:8px;">
@@ -256,20 +255,20 @@
                 <div class="form-group"><label>Telegram Admin Username:</label><input type="text" id="cfgTg"></div>
                 <div class="form-group"><label>អំពីយើងខ្ញុំ (About Us):</label><textarea id="cfgAbout" style="height:50px;"></textarea></div>
                 <div class="form-group"><label>របៀបទិញ (Guide):</label><textarea id="cfgGuide" style="height:50px;"></textarea></div>
-                <button class="btn-sm" style="background:#0284c7; width:100%;" onclick="saveConfig()">💾 រក្សាទុកព័ត៌មានហាង</button>
+                <button class="btn-sm" style="background:#0284c7; width:100%;" onclick="saveConfig()">រក្សាទុកព័ត៌មានហាង</button>
             </div>
 
             <div style="background:#0f172a; padding:6px; border-radius:4px; margin-bottom:8px;">
-                <h4 style="font-size:10px; margin:0 0 4px 0; color:#facc15;">+ បន្ថែម Promotion</h4>
+                <h4 style="font-size:10.5px; margin:0 0 4px 0; color:#facc15;">បន្ថែម Promotion</h4>
                 <div style="display:flex; gap:4px;">
                     <input type="text" id="newPromoInput" placeholder="អត្ថបទ Promotion...">
-                    <button class="btn-sm" style="background:var(--green);" onclick="addPromoText()">+ បន្ថែម</button>
+                    <button class="btn-sm" style="background:var(--green);" onclick="addPromoText()">បន្ថែម</button>
                 </div>
                 <div id="adminPromoList" style="margin-top:6px; max-height:80px; overflow-y:auto;"></div>
             </div>
 
             <div style="background:#0f172a; padding:6px; border-radius:4px; margin-bottom:8px;">
-                <h4 style="font-size:10px; margin:0 0 4px 0; color:#38bdf8;">+ បន្ថែម / កែប្រែទំនិញ</h4>
+                <h4 style="font-size:10.5px; margin:0 0 4px 0; color:#38bdf8;">បន្ថែម / កែប្រែទំនិញ</h4>
                 <input type="hidden" id="pEditId">
                 <div class="form-group">
                     <label>ប្រភេទទំនិញ:</label>
@@ -289,27 +288,27 @@
                 <div class="form-group"><label>តម្លៃនេត ($):</label><input type="text" id="pPriceNet"></div>
                 
                 <div class="form-group">
-                    <label>🖼️ រូបភាព Cover (១រូបតំណាង):</label>
-                    <div class="file-upload-btn" onclick="document.getElementById('pCoverInput').click()">+ ជ្រើសរើសរូបភាព Cover</div>
+                    <label>រូបភាព Cover (១រូបតំណាង):</label>
+                    <div class="file-upload-btn" onclick="document.getElementById('pCoverInput').click()">ជ្រើសរើសរូបភាព Cover</div>
                     <input type="file" id="pCoverInput" accept="image/*" style="display:none;" onchange="handleCoverUpload(event)">
                     <div id="pCoverPreview" class="img-gallery-preview"></div>
                 </div>
 
                 <div class="form-group">
-                    <label>🖼️ រូបភាពលម្អិត (ជ្រើសរើសបានច្រើនរូប):</label>
-                    <div class="file-upload-btn" onclick="document.getElementById('pFileInput').click()">+ ជ្រើសរើសរូបភាពបន្ថែម</div>
+                    <label>រូបភាពលម្អិត (ជ្រើសរើសបានច្រើនរូប):</label>
+                    <div class="file-upload-btn" onclick="document.getElementById('pFileInput').click()">ជ្រើសរើសរូបភាពបន្ថែម</div>
                     <input type="file" id="pFileInput" accept="image/*" multiple style="display:none;" onchange="handleImageUpload(event)">
                     <div id="pImgPreview" class="img-gallery-preview"></div>
                 </div>
 
                 <div class="form-group"><label>ការរៀបរាប់:</label><textarea id="pDesc"></textarea></div>
-                <button class="btn-sm" style="background:var(--green); width:100%; margin-top:3px;" onclick="saveProduct()">💾 រក្សាទុកទំនិញ</button>
+                <button class="btn-sm" style="background:var(--green); width:100%; margin-top:3px;" onclick="saveProduct()">រក្សាទុកទំនិញ</button>
             </div>
 
             <div style="background:#0f172a; padding:6px; border-radius:4px; margin-bottom:8px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <h4 style="font-size:10px; margin:0; color:#38bdf8;">🔍 បញ្ជីទំនិញ</h4>
-                    <select id="adminCatFilter" style="width: auto; padding: 2px 4px; font-size: 9px; background: #1e293b; color: #38bdf8; border: 1px solid #475569; border-radius: 4px;" onchange="renderAdminList()">
+                    <h4 style="font-size:10.5px; margin:0; color:#38bdf8;">បញ្ជីទំនិញ</h4>
+                    <select id="adminCatFilter" style="width: auto; padding: 2px 4px; font-size: 10px; background: #1e293b; color: #38bdf8; border: 1px solid #475569; border-radius: 4px; font-family: 'Khmer Bokor', sans-serif;" onchange="renderAdminList()">
                         <option value="all">-- បង្ហាញទាំងអស់ --</option>
                         <option value="tire_moto">សំបកម៉ូតូ</option>
                         <option value="tube_moto">ពោះវៀនម៉ូតូ</option>
@@ -332,7 +331,6 @@
         let isAdminAuthenticated = false;
         let searchTimeout = null;
 
-        // Safe LocalStorage helper preventing QuotaExceeded errors
         function safeGetLocalStorage(key) {
             try {
                 const item = localStorage.getItem(key);
@@ -350,7 +348,6 @@
             }
         }
 
-        // Initial State using Object Map for products to prevent array corruption
         const cachedData = safeGetLocalStorage('kk_shop_cache');
         let initialDbState = cachedData || {
             config: { 
@@ -365,7 +362,6 @@
             }
         };
 
-        // Normalize products to object format if loaded as array from old cache
         if (Array.isArray(initialDbState.products)) {
             let prodObj = {};
             initialDbState.products.forEach(p => { if (p && p.id) prodObj[p.id] = p; });
@@ -391,7 +387,6 @@
                 } catch(e){}
             }
 
-            // Non-blocking Firebase initialization
             setTimeout(() => {
                 try {
                     const firebaseConfig = {
@@ -466,7 +461,7 @@
                 document.getElementById('displayGuideText').innerText = dbState.config?.guide || "សូមជ្រើសរើសទំនិញដែលអ្នកចង់បាន។";
                 document.getElementById('pageTitle').innerText = dbState.config?.title || "ហាង KK Tire";
 
-                const promoTextCombined = (dbState.promos || []).join(" &nbsp;&nbsp;&nbsp;⚡⚡⚡&nbsp;&nbsp;&nbsp; ");
+                const promoTextCombined = (dbState.promos || []).join(" &nbsp;&nbsp;&nbsp; - &nbsp;&nbsp;&nbsp; ");
                 document.getElementById('displayPromoMarquee').innerHTML = promoTextCombined || "ស្វាគមន៍មកកាន់ហាងគ្រឿងបន្លាស់ម៉ូតូ!";
                 
                 let promoFullHtml = "";
@@ -479,6 +474,8 @@
                 const search = searchElem ? searchElem.value.toLowerCase().trim() : "";
                 
                 let rawList = Object.values(dbState.products || {});
+                // Sort by ID descending so newly added items appear at the top
+                rawList.sort((a, b) => Number(b.id) - Number(a.id));
 
                 if (search) rawList = rawList.filter(p => p.name.toLowerCase().includes(search));
                 if (window.currentCat !== 'all') rawList = rawList.filter(p => p.category === window.currentCat);
@@ -513,8 +510,8 @@
 
                 const isViewed = window.viewedProductIds.includes(p.id);
                 let badgeHtml = "";
-                if (p.isNew && !isViewed) badgeHtml = `<div class="badge-tag badge-new">✨ ថ្មី</div>`;
-                else if ((p.views || 0) > 5) badgeHtml = `<div class="badge-tag badge-pop">🔥 ពេញនិយម</div>`;
+                if (p.isNew && !isViewed) badgeHtml = `<div class="badge-tag badge-new">ថ្មី</div>`;
+                else if ((p.views || 0) > 5) badgeHtml = `<div class="badge-tag badge-pop">ពេញនិយម</div>`;
 
                 const displayImg = p.coverImg || ((p.images && p.images.length > 0) ? p.images[0] : (p.img || DEFAULT_IMG_PLACEHOLDER));
 
@@ -533,6 +530,7 @@
         function openViewAllModal(type) {
             const search = document.getElementById('searchInput').value.toLowerCase().trim();
             let rawList = Object.values(window.dbState.products || {});
+            rawList.sort((a, b) => Number(b.id) - Number(a.id));
 
             if (search) rawList = rawList.filter(p => p.name.toLowerCase().includes(search));
             if (window.currentCat !== 'all') rawList = rawList.filter(p => p.category === window.currentCat);
@@ -542,10 +540,10 @@
 
             if (type === 'new') {
                 targetList = rawList.filter(p => p.isNew);
-                title = "✨ ទំនិញថ្មីៗទាំងអស់";
+                title = "ទំនិញថ្មីៗទាំងអស់";
             } else if (type === 'popular') {
                 targetList = [...rawList].sort((a, b) => (b.views || 0) - (a.views || 0));
-                title = "🔥 ទំនិញពេញនិយមទាំងអស់ (តាមការចុចមើល)";
+                title = "ទំនិញពេញនិយមទាំងអស់ (តាមការចុចមើល)";
             }
 
             document.getElementById('viewAllTitle').innerText = title;
@@ -568,7 +566,7 @@
                 isAdminAuthenticated = true;
                 openAdminPanelDirectly();
             } else {
-                alert("⛔ បដិសេធសិទ្ធិ! មានតែគណនី Telegram Admin ផ្លូវការប៉ុណ្ណោះទើបអាចចូលគ្រប់គ្រងបាន។");
+                alert("បដិសេធសិទ្ធិ! មានតែគណនី Telegram Admin ផ្លូវការប៉ុណ្ណោះទើបអាចចូលគ្រប់គ្រងបាន។");
             }
         }
 
@@ -710,7 +708,7 @@
 
         function updateOrderLink() {
             if(!window.currentProduct) return;
-            const msg = `🛒 ការបញ្ជាទិញទំនិញ:\n📦 ឈ្មោះទំនិញ: ${window.currentProduct.name}\n💰 តម្លៃពេញ: ${window.currentProduct.priceFull || window.currentProduct.price || 'ចរចា'}\n💰 តម្លៃនេត: ${window.currentProduct.priceNet || 'ចរចា'}\n🔢 ចំនួន: ${window.currentQty}\n\n( ទំនិញទាំងអស់ រួមទាំងតម្លៃ និង Promotion ស្ថិតក្រោមការចរចាជាមួយអ្នកលក់ )`;
+            const msg = `ការបញ្ជាទិញទំនិញ:\nឈ្មោះទំនិញ: ${window.currentProduct.name}\nតម្លៃពេញ: ${window.currentProduct.priceFull || window.currentProduct.price || 'ចរចា'}\nតម្លៃនេត: ${window.currentProduct.priceNet || 'ចរចា'}\nចំនួន: ${window.currentQty}\n\n( ទំនិញទាំងអស់ រួមទាំងតម្លៃ និង Promotion ស្ថិតក្រោមការចរចាជាមួយអ្នកលក់ )`;
             document.getElementById('mOrderBtn').href = `https://t.me/${window.dbState.config.tg || 'SameanMom168'}?text=` + encodeURIComponent(msg);
         }
 
@@ -723,7 +721,7 @@
             
             syncToFirebase();
             renderApp();
-            alert("💾 រក្សាទុកជោគជ័យ!");
+            alert("រក្សាទុកជោគជ័យ!");
         }
 
         function addPromoText() {
@@ -768,6 +766,7 @@
             if(!box) return;
             box.innerHTML = "";
             let list = Object.values(window.dbState.products || {});
+            list.sort((a, b) => Number(b.id) - Number(a.id));
 
             const selectedCat = document.getElementById('adminCatFilter')?.value || 'all';
             if (selectedCat !== 'all') {
@@ -783,7 +782,7 @@
                 const row = document.createElement('div');
                 row.className = 'admin-row';
                 row.innerHTML = `
-                    <span><b>${p.name}</b> (${p.priceFull || p.price || 'ចរចា'}) - 👁️ ${p.views || 0}</span>
+                    <span><b>${p.name}</b> (${p.priceFull || p.price || 'ចរចា'}) - មើល: ${p.views || 0}</span>
                     <div>
                         <button class="btn-sm" style="background:#0284c7" onclick="editProd('${p.id}')">កែ</button>
                         <button class="btn-sm" style="background:#ef4444" onclick="deleteProd('${p.id}')">លុប</button>
@@ -829,7 +828,7 @@
             syncToFirebase();
             renderAdminList();
             renderApp();
-            alert("💾 រក្សាទុកទំនិញជោគជ័យ!");
+            alert("រក្សាទុកទំនិញជោគជ័យ!");
         }
 
         function editProd(id) {
