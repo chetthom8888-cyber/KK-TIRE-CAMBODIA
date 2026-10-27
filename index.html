@@ -591,6 +591,7 @@
             openModal('adminModal');
         }
 
+        // Optimized Image Compression Process for Fast Sync Across Devices
         function processImageFile(file, maxDim, quality, callback) {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -610,7 +611,7 @@
 
                     canvas.width = width; canvas.height = height;
                     ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
+                    ctx.imageSmoothingQuality = 'medium';
                     ctx.drawImage(img, 0, 0, width, height);
 
                     const compressed = canvas.toDataURL('image/jpeg', quality);
@@ -623,7 +624,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            processImageFile(file, 400, 0.70, (base64Img) => {
+            processImageFile(file, 300, 0.60, (base64Img) => {
                 window.tempCoverImg = base64Img;
                 const box = document.getElementById('pCoverPreview');
                 box.innerHTML = `<img src="${base64Img}">`;
@@ -638,7 +639,7 @@
             document.getElementById('pImgPreview').innerHTML = "";
 
             files.forEach(file => {
-                processImageFile(file, 500, 0.70, (base64Img) => {
+                processImageFile(file, 400, 0.60, (base64Img) => {
                     window.tempCroppedImgs.push(base64Img);
                     const imgElem = document.createElement('img');
                     imgElem.src = base64Img;
@@ -817,7 +818,6 @@
             const cover = window.tempCoverImg || (existing ? existing.coverImg : "");
             const imgs = (window.tempCroppedImgs.length > 0) ? window.tempCroppedImgs : (existing ? (existing.images || []) : []);
 
-            // FIX: Use 'p_' prefix so Firebase treats product IDs correctly as object keys instead of Arrays
             const productId = editId ? editId : "p_" + Date.now();
 
             window.dbState.products[productId] = { 
