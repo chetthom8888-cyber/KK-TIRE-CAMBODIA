@@ -348,6 +348,14 @@
             }
         }
 
+        function getTimestampFromId(id) {
+            if (!id) return 0;
+            if (typeof id === 'string' && id.startsWith('p_')) {
+                return Number(id.replace('p_', '')) || 0;
+            }
+            return Number(id) || 0;
+        }
+
         const cachedData = safeGetLocalStorage('kk_shop_cache');
         let initialDbState = cachedData || {
             config: { 
@@ -474,8 +482,8 @@
                 const search = searchElem ? searchElem.value.toLowerCase().trim() : "";
                 
                 let rawList = Object.values(dbState.products || {});
-                // Sort by ID descending so newly added items appear at the top
-                rawList.sort((a, b) => Number(b.id) - Number(a.id));
+                // Sort by timestamp descending so newly added items appear at the top
+                rawList.sort((a, b) => getTimestampFromId(b.id) - getTimestampFromId(a.id));
 
                 if (search) rawList = rawList.filter(p => p.name.toLowerCase().includes(search));
                 if (window.currentCat !== 'all') rawList = rawList.filter(p => p.category === window.currentCat);
@@ -530,7 +538,7 @@
         function openViewAllModal(type) {
             const search = document.getElementById('searchInput').value.toLowerCase().trim();
             let rawList = Object.values(window.dbState.products || {});
-            rawList.sort((a, b) => Number(b.id) - Number(a.id));
+            rawList.sort((a, b) => getTimestampFromId(b.id) - getTimestampFromId(a.id));
 
             if (search) rawList = rawList.filter(p => p.name.toLowerCase().includes(search));
             if (window.currentCat !== 'all') rawList = rawList.filter(p => p.category === window.currentCat);
@@ -766,7 +774,7 @@
             if(!box) return;
             box.innerHTML = "";
             let list = Object.values(window.dbState.products || {});
-            list.sort((a, b) => Number(b.id) - Number(a.id));
+            list.sort((a, b) => getTimestampFromId(b.id) - getTimestampFromId(a.id));
 
             const selectedCat = document.getElementById('adminCatFilter')?.value || 'all';
             if (selectedCat !== 'all') {
@@ -809,7 +817,8 @@
             const cover = window.tempCoverImg || (existing ? existing.coverImg : "");
             const imgs = (window.tempCroppedImgs.length > 0) ? window.tempCroppedImgs : (existing ? (existing.images || []) : []);
 
-            const productId = editId ? editId : Date.now().toString();
+            // FIX: Use 'p_' prefix so Firebase treats product IDs correctly as object keys instead of Arrays
+            const productId = editId ? editId : "p_" + Date.now();
 
             window.dbState.products[productId] = { 
                 id: productId, 
