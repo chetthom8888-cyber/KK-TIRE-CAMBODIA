@@ -335,17 +335,11 @@
             try {
                 const item = localStorage.getItem(key);
                 return item ? JSON.parse(item) : null;
-            } catch (e) {
-                return null;
-            }
+            } catch (e) { return null; }
         }
 
         function safeSetLocalStorage(key, val) {
-            try {
-                localStorage.setItem(key, JSON.stringify(val));
-            } catch (e) {
-                console.warn("LocalStorage storage full:", e);
-            }
+            try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
         }
 
         function getTimestampFromId(id) {
@@ -394,7 +388,15 @@
         window.dbRef = null;
 
         document.addEventListener("DOMContentLoaded", () => {
-            renderApp();
+            const cachedData = safeGetLocalStorage('kk_shop_cache');
+            if (cachedData) {
+                window.dbState = {
+                    config: { ...initialDbState.config, ...(cachedData.config || {}) },
+                    promos: cachedData.promos || initialDbState.promos,
+                    products: normalizeProducts(cachedData.products || {})
+                };
+                renderApp();
+            }
 
             if (window.Telegram && window.Telegram.WebApp) {
                 try {
@@ -420,6 +422,7 @@
 
                 window.dbRef = firebase.database().ref('kk_shop');
                 
+                // Real-time synchronization for instant updates across all devices
                 window.dbRef.on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
@@ -433,11 +436,6 @@
                     }
                 }, (err) => {
                     console.error("Firebase Read Error:", err);
-                    const cachedData = safeGetLocalStorage('kk_shop_cache');
-                    if (cachedData) {
-                        window.dbState.products = normalizeProducts(cachedData.products);
-                        renderApp();
-                    }
                 });
 
             } catch(err) {
