@@ -388,16 +388,6 @@
         window.dbRef = null;
 
         document.addEventListener("DOMContentLoaded", () => {
-            const cachedData = safeGetLocalStorage('kk_shop_cache');
-            if (cachedData) {
-                window.dbState = {
-                    config: { ...initialDbState.config, ...(cachedData.config || {}) },
-                    promos: cachedData.promos || initialDbState.promos,
-                    products: normalizeProducts(cachedData.products || {})
-                };
-                renderApp();
-            }
-
             if (window.Telegram && window.Telegram.WebApp) {
                 try {
                     window.Telegram.WebApp.ready();
@@ -422,13 +412,13 @@
 
                 window.dbRef = firebase.database().ref('kk_shop');
                 
-                // Real-time synchronization for instant updates across all devices
+                // បង្ខំទាញយកទិន្នន័យថ្មីភ្លាមៗ និងស្តាប់ការផ្លាស់ប្តូរ Real-time គ្រប់ឧបករណ៍ទាំងអស់
                 window.dbRef.on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
                         window.dbState = {
-                            config: { ...window.dbState.config, ...(data.config || {}) },
-                            promos: data.promos || window.dbState.promos || [],
+                            config: { ...initialDbState.config, ...(data.config || {}) },
+                            promos: data.promos || initialDbState.promos,
                             products: normalizeProducts(data.products || {})
                         };
                         safeSetLocalStorage('kk_shop_cache', window.dbState);
@@ -436,6 +426,11 @@
                     }
                 }, (err) => {
                     console.error("Firebase Read Error:", err);
+                    const cachedData = safeGetLocalStorage('kk_shop_cache');
+                    if (cachedData) {
+                        window.dbState.products = normalizeProducts(cachedData.products);
+                        renderApp();
+                    }
                 });
 
             } catch(err) {
