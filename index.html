@@ -327,7 +327,7 @@
 
     <script>
         const ALLOWED_ADMIN_USERNAME = "SameanMom168";
-        const DEFAULT_IMG_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='100%' height='100% ' fill='%231e293b'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23475569' font-size='12'>No Image</text></svg>";
+        const DEFAULT_IMG_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='100%' height='100%' fill='%231e293b'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23475569' font-size='12'>No Image</text></svg>";
         let isAdminAuthenticated = false;
         let searchTimeout = null;
 
@@ -354,10 +354,11 @@
             let prodObj = {};
             if (!rawData) return prodObj;
             if (Array.isArray(rawData)) {
-                rawData.forEach((p, idx) => { 
+                rawData.forEach((p, idx) => {
                     if (p) {
-                        p.id = p.id || ('p_' + (Date.now() + idx));
-                        prodObj[p.id] = p; 
+                        const pid = p.id || ('p_' + (Date.now() + idx));
+                        p.id = pid;
+                        prodObj[pid] = p;
                     }
                 });
             } else if (typeof rawData === 'object') {
@@ -400,7 +401,7 @@
                 } catch(e){}
             }
 
-            // Load from cache first for instant load performance
+            // Load from LocalStorage cache for instant loading
             const cachedData = safeGetLocalStorage('kk_shop_cache');
             if (cachedData) {
                 window.dbState = {
@@ -440,6 +441,8 @@
                         safeSetLocalStorage('kk_shop_cache', window.dbState);
                         renderApp();
                     }
+                }, (err) => {
+                    console.error("Firebase Read Error:", err);
                 });
 
             } catch(err) {
@@ -450,6 +453,7 @@
         function syncToFirebase() {
             safeSetLocalStorage('kk_shop_cache', window.dbState);
             if (window.dbRef) {
+                // Save products as an object map keyed by ID to ensure cross-device consistency
                 window.dbRef.set(window.dbState).catch(err => {
                     console.warn("Sync error:", err);
                 });
@@ -577,17 +581,18 @@
                 tgUser = window.Telegram.WebApp.initDataUnsafe.user.username;
             }
 
+            // STRICT ADMIN SECURITY CHECK RESTORED
             if (tgUser && tgUser.toLowerCase() === ALLOWED_ADMIN_USERNAME.toLowerCase()) {
                 isAdminAuthenticated = true;
                 openAdminPanelDirectly();
             } else {
-                // Allow bypass for testing or direct access if needed, or enforce Telegram username
-                isAdminAuthenticated = true; // Set to true for smooth device management, or keep strict check
-                openAdminPanelDirectly();
+                alert("បដិសេធសិទ្ធិ! មានតែគណនី Telegram Admin ផ្លូវការ (" + ALLOWED_ADMIN_USERNAME + ") ប៉ុណ្ណោះទើបអាចចូលគ្រប់គ្រងបាន។");
             }
         }
 
         function openAdminPanelDirectly() {
+            if (!isAdminAuthenticated) return;
+
             document.getElementById('cfgTitle').value = window.dbState.config.title || "";
             document.getElementById('cfgTg').value = window.dbState.config.tg || "";
             document.getElementById('cfgAbout').value = window.dbState.config.about || "";
@@ -728,6 +733,7 @@
         }
 
         function saveConfig() {
+            if(!isAdminAuthenticated) return;
             window.dbState.config.title = document.getElementById('cfgTitle').value.trim() || window.dbState.config.title;
             window.dbState.config.tg = document.getElementById('cfgTg').value.trim() || window.dbState.config.tg;
             window.dbState.config.about = document.getElementById('cfgAbout').value.trim() || window.dbState.config.about;
@@ -739,6 +745,7 @@
         }
 
         function addPromoText() {
+            if(!isAdminAuthenticated) return;
             const val = document.getElementById('newPromoInput').value.trim();
             if(!val) return;
             if(!window.dbState.promos) window.dbState.promos = [];
@@ -750,6 +757,7 @@
         }
 
         function deletePromoText(idx) {
+            if(!isAdminAuthenticated) return;
             if(confirm("តើចង់លុប Promotion នេះមែនទេ?")) {
                 window.dbState.promos.splice(idx, 1);
                 syncToFirebase();
@@ -805,6 +813,7 @@
         }
 
         function saveProduct() {
+            if(!isAdminAuthenticated) return;
             const editId = document.getElementById('pEditId').value;
             const name = document.getElementById('pName').value.trim();
             const priceFull = document.getElementById('pPriceFull').value.trim();
@@ -880,6 +889,7 @@
         }
 
         function deleteProd(id) {
+            if(!isAdminAuthenticated) return;
             if(confirm("តើចង់លុបមែនទេ?")) {
                 delete window.dbState.products[id];
                 syncToFirebase();
